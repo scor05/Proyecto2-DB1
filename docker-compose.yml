@@ -1,0 +1,25 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: proyecto2-db
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "${DB_PUBLIC_PORT}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./sql/ddl.sql:/docker-entrypoint-initdb.d/01-ddl.sql:ro
+      - ./sql/pruebas.sql:/docker-entrypoint-initdb.d/02-pruebas.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres-data:
