@@ -60,6 +60,12 @@ type Employee struct {
 	Correo     string `json:"correo"`
 }
 
+type EmployeeWrite struct {
+	Nombre string `json:"nombre"`
+	Estado string `json:"estado"`
+	Correo string `json:"correo"`
+}
+
 type Category struct {
 	IDCategoria int    `json:"id_categoria"`
 	Nombre      string `json:"nombre"`
@@ -89,6 +95,12 @@ type Client struct {
 	Nombre    string `json:"nombre"`
 	Telefono  string `json:"telefono"`
 	Correo    string `json:"correo"`
+}
+
+type ClientWrite struct {
+	Nombre   string `json:"nombre"`
+	Telefono string `json:"telefono"`
+	Correo   string `json:"correo"`
 }
 
 type Compra struct {
@@ -589,6 +601,84 @@ func (m *Manager) Employees(ctx context.Context) ([]Employee, error) {
 	return employees, nil
 }
 
+func (m *Manager) Employee(ctx context.Context, id int) (*Employee, error) {
+	row := m.conn.QueryRowContext(ctx, `
+		SELECT id_empleado, nombre, estado, correo
+		FROM empleado
+		WHERE id_empleado = $1
+	`, id)
+
+	var employee Employee
+	if err := row.Scan(&employee.IDEmpleado, &employee.Nombre, &employee.Estado, &employee.Correo); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		return nil, err
+	}
+	return &employee, nil
+}
+
+func (m *Manager) CreateEmployee(ctx context.Context, input EmployeeWrite) (*Employee, error) {
+	if err := validateEmployeeWrite(input); err != nil {
+		return nil, err
+	}
+
+	row := m.conn.QueryRowContext(ctx, `
+		INSERT INTO empleado (nombre, estado, correo)
+		VALUES ($1, $2, $3)
+		RETURNING id_empleado, nombre, estado, correo
+	`, strings.TrimSpace(input.Nombre), strings.TrimSpace(input.Estado), strings.TrimSpace(input.Correo))
+
+	var employee Employee
+	if err := row.Scan(&employee.IDEmpleado, &employee.Nombre, &employee.Estado, &employee.Correo); err != nil {
+		return nil, err
+	}
+	return &employee, nil
+}
+
+func (m *Manager) UpdateEmployee(ctx context.Context, id int, input EmployeeWrite) (*Employee, error) {
+	if err := validateEmployeeWrite(input); err != nil {
+		return nil, err
+	}
+
+	row := m.conn.QueryRowContext(ctx, `
+		UPDATE empleado
+		SET nombre = $1,
+		    estado = $2,
+		    correo = $3
+		WHERE id_empleado = $4
+		RETURNING id_empleado, nombre, estado, correo
+	`, strings.TrimSpace(input.Nombre), strings.TrimSpace(input.Estado), strings.TrimSpace(input.Correo), id)
+
+	var employee Employee
+	if err := row.Scan(&employee.IDEmpleado, &employee.Nombre, &employee.Estado, &employee.Correo); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		return nil, err
+	}
+	return &employee, nil
+}
+
+func (m *Manager) DestroyEmployee(ctx context.Context, id int) error {
+	result, err := m.conn.ExecContext(ctx, `
+		DELETE FROM empleado
+		WHERE id_empleado = $1
+	`, id)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return ErrNotFound
+	}
+	return nil
+}
+
 func (m *Manager) Clients(ctx context.Context) ([]Client, error) {
 	rows, err := m.conn.QueryContext(ctx, `
 		SELECT id_cliente, nombre, telefono, correo
@@ -612,6 +702,84 @@ func (m *Manager) Clients(ctx context.Context) ([]Client, error) {
 		return nil, err
 	}
 	return clients, nil
+}
+
+func (m *Manager) Client(ctx context.Context, id int) (*Client, error) {
+	row := m.conn.QueryRowContext(ctx, `
+		SELECT id_cliente, nombre, telefono, correo
+		FROM cliente
+		WHERE id_cliente = $1
+	`, id)
+
+	var client Client
+	if err := row.Scan(&client.IDCliente, &client.Nombre, &client.Telefono, &client.Correo); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		return nil, err
+	}
+	return &client, nil
+}
+
+func (m *Manager) CreateClient(ctx context.Context, input ClientWrite) (*Client, error) {
+	if err := validateClientWrite(input); err != nil {
+		return nil, err
+	}
+
+	row := m.conn.QueryRowContext(ctx, `
+		INSERT INTO cliente (nombre, telefono, correo)
+		VALUES ($1, $2, $3)
+		RETURNING id_cliente, nombre, telefono, correo
+	`, strings.TrimSpace(input.Nombre), strings.TrimSpace(input.Telefono), strings.TrimSpace(input.Correo))
+
+	var client Client
+	if err := row.Scan(&client.IDCliente, &client.Nombre, &client.Telefono, &client.Correo); err != nil {
+		return nil, err
+	}
+	return &client, nil
+}
+
+func (m *Manager) UpdateClient(ctx context.Context, id int, input ClientWrite) (*Client, error) {
+	if err := validateClientWrite(input); err != nil {
+		return nil, err
+	}
+
+	row := m.conn.QueryRowContext(ctx, `
+		UPDATE cliente
+		SET nombre = $1,
+		    telefono = $2,
+		    correo = $3
+		WHERE id_cliente = $4
+		RETURNING id_cliente, nombre, telefono, correo
+	`, strings.TrimSpace(input.Nombre), strings.TrimSpace(input.Telefono), strings.TrimSpace(input.Correo), id)
+
+	var client Client
+	if err := row.Scan(&client.IDCliente, &client.Nombre, &client.Telefono, &client.Correo); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		return nil, err
+	}
+	return &client, nil
+}
+
+func (m *Manager) DestroyClient(ctx context.Context, id int) error {
+	result, err := m.conn.ExecContext(ctx, `
+		DELETE FROM cliente
+		WHERE id_cliente = $1
+	`, id)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return ErrNotFound
+	}
+	return nil
 }
 
 func (m *Manager) Compras(ctx context.Context) ([]Compra, error) {
@@ -926,6 +1094,37 @@ func validateProviderWrite(input ProviderWrite) error {
 		return fmt.Errorf("%w: correo must be a valid email", ErrInvalidInput)
 	case strings.TrimSpace(input.Direccion) == "":
 		return fmt.Errorf("%w: direccion is required", ErrInvalidInput)
+	default:
+		return nil
+	}
+}
+
+func validateEmployeeWrite(input EmployeeWrite) error {
+	estado := strings.TrimSpace(input.Estado)
+	switch {
+	case strings.TrimSpace(input.Nombre) == "":
+		return fmt.Errorf("%w: nombre is required", ErrInvalidInput)
+	case estado != "activo" && estado != "inactivo":
+		return fmt.Errorf("%w: estado must be activo or inactivo", ErrInvalidInput)
+	case strings.TrimSpace(input.Correo) == "":
+		return fmt.Errorf("%w: correo is required", ErrInvalidInput)
+	case !strings.Contains(input.Correo, "@"):
+		return fmt.Errorf("%w: correo must be a valid email", ErrInvalidInput)
+	default:
+		return nil
+	}
+}
+
+func validateClientWrite(input ClientWrite) error {
+	switch {
+	case strings.TrimSpace(input.Nombre) == "":
+		return fmt.Errorf("%w: nombre is required", ErrInvalidInput)
+	case strings.TrimSpace(input.Telefono) == "":
+		return fmt.Errorf("%w: telefono is required", ErrInvalidInput)
+	case strings.TrimSpace(input.Correo) == "":
+		return fmt.Errorf("%w: correo is required", ErrInvalidInput)
+	case !strings.Contains(input.Correo, "@"):
+		return fmt.Errorf("%w: correo must be a valid email", ErrInvalidInput)
 	default:
 		return nil
 	}

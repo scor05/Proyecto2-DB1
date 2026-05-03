@@ -1,0 +1,21 @@
+.employee-form {
+  display: grid;
+  gap: 14px;
+}
+
+.employee-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-weight: 700;
+}
+
+.employee-form input,
+.employee-form select {
+  height: 40px;
+  border: 1px solid rgba(179, 227, 229, 0.35);
+  border-radius: 8px;
+  padding: 0 10px;
+  background: var(--surface);
+  color: var(--content);
+}

@@ -46,6 +46,24 @@ func ProviderIDFromRequest(w http.ResponseWriter, r *http.Request) (int, bool) {
 	return id, true
 }
 
+func EmployeeIDFromRequest(w http.ResponseWriter, r *http.Request) (int, bool) {
+	id, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil || id <= 0 {
+		WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid employee id"))
+		return 0, false
+	}
+	return id, true
+}
+
+func ClientIDFromRequest(w http.ResponseWriter, r *http.Request) (int, bool) {
+	id, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil || id <= 0 {
+		WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid client id"))
+		return 0, false
+	}
+	return id, true
+}
+
 func WriteDBError(w http.ResponseWriter, err error) {
 	switch {
 	case errors.Is(err, database.ErrNotFound):

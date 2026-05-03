@@ -95,3 +95,47 @@ func UpdateProvider(manager *database.Manager) http.HandlerFunc {
 		WriteJSON(w, http.StatusOK, provider)
 	}
 }
+
+func UpdateEmployee(manager *database.Manager) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id, ok := EmployeeIDFromRequest(w, r)
+		if !ok {
+			return
+		}
+
+		var input database.EmployeeWrite
+		if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+			WriteError(w, http.StatusBadRequest, err)
+			return
+		}
+
+		employee, err := manager.UpdateEmployee(r.Context(), id, input)
+		if err != nil {
+			WriteDBError(w, err)
+			return
+		}
+		WriteJSON(w, http.StatusOK, employee)
+	}
+}
+
+func UpdateClient(manager *database.Manager) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id, ok := ClientIDFromRequest(w, r)
+		if !ok {
+			return
+		}
+
+		var input database.ClientWrite
+		if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+			WriteError(w, http.StatusBadRequest, err)
+			return
+		}
+
+		client, err := manager.UpdateClient(r.Context(), id, input)
+		if err != nil {
+			WriteDBError(w, err)
+			return
+		}
+		WriteJSON(w, http.StatusOK, client)
+	}
+}

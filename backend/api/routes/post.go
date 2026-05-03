@@ -97,3 +97,37 @@ func CreateProvider(manager *database.Manager) http.HandlerFunc {
 		WriteJSON(w, http.StatusCreated, provider)
 	}
 }
+
+func CreateEmployee(manager *database.Manager) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var input database.EmployeeWrite
+		if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+			WriteError(w, http.StatusBadRequest, err)
+			return
+		}
+
+		employee, err := manager.CreateEmployee(r.Context(), input)
+		if err != nil {
+			WriteDBError(w, err)
+			return
+		}
+		WriteJSON(w, http.StatusCreated, employee)
+	}
+}
+
+func CreateClient(manager *database.Manager) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var input database.ClientWrite
+		if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+			WriteError(w, http.StatusBadRequest, err)
+			return
+		}
+
+		client, err := manager.CreateClient(r.Context(), input)
+		if err != nil {
+			WriteDBError(w, err)
+			return
+		}
+		WriteJSON(w, http.StatusCreated, client)
+	}
+}

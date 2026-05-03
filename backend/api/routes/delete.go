@@ -68,3 +68,35 @@ func DestroyProvider(manager *database.Manager) http.HandlerFunc {
 		w.WriteHeader(http.StatusNoContent)
 	}
 }
+
+func DestroyEmployee(manager *database.Manager) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id, ok := EmployeeIDFromRequest(w, r)
+		if !ok {
+			return
+		}
+
+		if err := manager.DestroyEmployee(r.Context(), id); err != nil {
+			WriteDBError(w, err)
+			return
+		}
+
+		w.WriteHeader(http.StatusNoContent)
+	}
+}
+
+func DestroyClient(manager *database.Manager) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id, ok := ClientIDFromRequest(w, r)
+		if !ok {
+			return
+		}
+
+		if err := manager.DestroyClient(r.Context(), id); err != nil {
+			WriteDBError(w, err)
+			return
+		}
+
+		w.WriteHeader(http.StatusNoContent)
+	}
+}

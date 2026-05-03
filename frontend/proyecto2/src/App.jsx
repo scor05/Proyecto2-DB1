@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react"
 import { CategoriasPage } from "./categorias/CategoriasPage.jsx"
+import { ClientesPage } from "./clientes/ClientesPage.jsx"
 import { ComprasPage } from "./compras/ComprasPage.jsx"
+import { EmpleadosPage } from "./empleados/EmpleadosPage.jsx"
 import { LoginPage } from "./login/LoginPage.jsx"
 import { ProductsPage } from "./products/ProductsPage.jsx"
 import { ProveedoresPage } from "./proveedores/ProveedoresPage.jsx"
@@ -29,6 +31,8 @@ export function App() {
     { id: "compras", label: "Compras" },
     { id: "proveedores", label: "Proveedores" },
     { id: "categorias", label: "Categorías" },
+    { id: "clientes", label: "Clientes" },
+    { id: "empleados", label: "Empleados" },
   ], [])
 
   if (!employee) {
@@ -49,6 +53,8 @@ export function App() {
         {page === "compras" && <ComprasPage employee={employee} />}
         {page === "proveedores" && <ProveedoresPage />}
         {page === "categorias" && <CategoriasPage />}
+        {page === "clientes" && <ClientesPage />}
+        {page === "empleados" && <EmpleadosPage />}
       </main>
     </div>
   )

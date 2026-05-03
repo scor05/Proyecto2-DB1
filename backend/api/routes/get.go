@@ -99,6 +99,22 @@ func ListEmployees(manager *database.Manager) http.HandlerFunc {
 	}
 }
 
+func ShowEmployee(manager *database.Manager) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id, ok := EmployeeIDFromRequest(w, r)
+		if !ok {
+			return
+		}
+
+		employee, err := manager.Employee(r.Context(), id)
+		if err != nil {
+			WriteDBError(w, err)
+			return
+		}
+		WriteJSON(w, http.StatusOK, employee)
+	}
+}
+
 func ListClients(manager *database.Manager) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		clients, err := manager.Clients(r.Context())
@@ -107,6 +123,22 @@ func ListClients(manager *database.Manager) http.HandlerFunc {
 			return
 		}
 		WriteJSON(w, http.StatusOK, clients)
+	}
+}
+
+func ShowClient(manager *database.Manager) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id, ok := ClientIDFromRequest(w, r)
+		if !ok {
+			return
+		}
+
+		client, err := manager.Client(r.Context(), id)
+		if err != nil {
+			WriteDBError(w, err)
+			return
+		}
+		WriteJSON(w, http.StatusOK, client)
 	}
 }
 

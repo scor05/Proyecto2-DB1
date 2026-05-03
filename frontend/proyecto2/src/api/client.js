@@ -88,3 +88,31 @@ export const updateProvider = (id, provider) => apiRequest(`/api/proveedores/${i
 export const deleteProvider = (id) => apiRequest(`/api/proveedores/${id}`, {
   method: "DELETE",
 })
+
+export const createEmployee = (employee) => apiRequest("/api/empleados", {
+  method: "POST",
+  body: JSON.stringify(employee),
+})
+
+export const updateEmployee = (id, employee) => apiRequest(`/api/empleados/${id}`, {
+  method: "PUT",
+  body: JSON.stringify(employee),
+})
+
+export const deleteEmployee = (id) => apiRequest(`/api/empleados/${id}`, {
+  method: "DELETE",
+})
+
+export const createClient = (client) => apiRequest("/api/clientes", {
+  method: "POST",
+  body: JSON.stringify(client),
+})
+
+export const updateClient = (id, client) => apiRequest(`/api/clientes/${id}`, {
+  method: "PUT",
+  body: JSON.stringify(client),
+})
+
+export const deleteClient = (id) => apiRequest(`/api/clientes/${id}`, {
+  method: "DELETE",
+})
