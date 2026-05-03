@@ -25,6 +25,7 @@ type Product struct {
 	IDProducto  int     `json:"id_producto"`
 	IDCategoria int     `json:"id_categoria"`
 	IDProveedor int     `json:"id_proveedor"`
+	Categoria   string  `json:"categoria"`
 	Precio      float64 `json:"precio"`
 	Stock       int     `json:"stock"`
 	Nombre      string  `json:"nombre"`
@@ -50,6 +51,23 @@ type ProductPatch struct {
 	Nombre      *string  `json:"nombre"`
 	Imagen      *string  `json:"imagen"`
 	Descripcion *string  `json:"descripcion"`
+}
+
+type Employee struct {
+	IDEmpleado int    `json:"id_empleado"`
+	Nombre     string `json:"nombre"`
+	Estado     string `json:"estado"`
+	Correo     string `json:"correo"`
+}
+
+type Category struct {
+	IDCategoria int    `json:"id_categoria"`
+	Nombre      string `json:"nombre"`
+}
+
+type Provider struct {
+	IDProveedor int    `json:"id_proveedor"`
+	Nombre      string `json:"nombre"`
 }
 
 func NewManager() (*Manager, error) {
@@ -95,9 +113,11 @@ func (m *Manager) Ping(ctx context.Context) error {
 
 func (m *Manager) Index(ctx context.Context) ([]Product, error) {
 	rows, err := m.conn.QueryContext(ctx, `
-		SELECT id_producto, id_categoria, id_proveedor, precio, stock, nombre, imagen, descripcion
-		FROM producto
-		ORDER BY id_producto
+		SELECT p.id_producto, p.id_categoria, p.id_proveedor, c.nombre AS categoria,
+		       p.precio, p.stock, p.nombre, p.imagen, p.descripcion
+		FROM producto p
+		JOIN categoria c ON c.id_categoria = p.id_categoria
+		ORDER BY p.id_producto
 	`)
 	if err != nil {
 		return nil, err
@@ -121,9 +141,11 @@ func (m *Manager) Index(ctx context.Context) ([]Product, error) {
 
 func (m *Manager) Show(ctx context.Context, id int) (*Product, error) {
 	row := m.conn.QueryRowContext(ctx, `
-		SELECT id_producto, id_categoria, id_proveedor, precio, stock, nombre, imagen, descripcion
-		FROM producto
-		WHERE id_producto = $1
+		SELECT p.id_producto, p.id_categoria, p.id_proveedor, c.nombre AS categoria,
+		       p.precio, p.stock, p.nombre, p.imagen, p.descripcion
+		FROM producto p
+		JOIN categoria c ON c.id_categoria = p.id_categoria
+		WHERE p.id_producto = $1
 	`, id)
 
 	product, err := scanProduct(row)
@@ -157,7 +179,9 @@ func (m *Manager) Update(ctx context.Context, id int, input ProductWrite) (*Prod
 		    imagen = $6,
 		    descripcion = $7
 		WHERE id_producto = $8
-		RETURNING id_producto, id_categoria, id_proveedor, precio, stock, nombre, imagen, descripcion
+		RETURNING id_producto, id_categoria, id_proveedor,
+		          (SELECT nombre FROM categoria WHERE id_categoria = producto.id_categoria) AS categoria,
+		          precio, stock, nombre, imagen, descripcion
 	`, input.IDCategoria, input.IDProveedor, input.Precio, input.Stock, input.Nombre, optionalString(input.Imagen), input.Descripcion, id)
 
 	product, err := scanProduct(row)
@@ -195,7 +219,9 @@ func (m *Manager) Patch(ctx context.Context, id int, input ProductPatch) (*Produ
 		    imagen = COALESCE($6, imagen),
 		    descripcion = COALESCE($7, descripcion)
 		WHERE id_producto = $8
-		RETURNING id_producto, id_categoria, id_proveedor, precio, stock, nombre, imagen, descripcion
+		RETURNING id_producto, id_categoria, id_proveedor,
+		          (SELECT nombre FROM categoria WHERE id_categoria = producto.id_categoria) AS categoria,
+		          precio, stock, nombre, imagen, descripcion
 	`, optionalInt(input.IDCategoria), optionalInt(input.IDProveedor), optionalFloat64(input.Precio), optionalInt(input.Stock), optionalString(input.Nombre), optionalString(input.Imagen), optionalString(input.Descripcion), id)
 
 	product, err := scanProduct(row)
@@ -219,6 +245,13 @@ func (m *Manager) Destroy(ctx context.Context, id int) error {
 	}
 	defer tx.Rollback()
 
+	if _, err := tx.ExecContext(ctx, `
+		DELETE FROM producto_compra
+		WHERE id_producto = $1
+	`, id); err != nil {
+		return err
+	}
+
 	result, err := tx.ExecContext(ctx, `
 		DELETE FROM producto
 		WHERE id_producto = $1
@@ -238,6 +271,73 @@ func (m *Manager) Destroy(ctx context.Context, id int) error {
 	return tx.Commit()
 }
 
+func (m *Manager) LoginEmployee(ctx context.Context, correo string) (*Employee, error) {
+	row := m.conn.QueryRowContext(ctx, `
+		SELECT id_empleado, nombre, estado, correo
+		FROM empleado
+		WHERE lower(correo) = lower($1)
+	`, strings.TrimSpace(correo))
+
+	var employee Employee
+	if err := row.Scan(&employee.IDEmpleado, &employee.Nombre, &employee.Estado, &employee.Correo); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		return nil, err
+	}
+	return &employee, nil
+}
+
+func (m *Manager) Categories(ctx context.Context) ([]Category, error) {
+	rows, err := m.conn.QueryContext(ctx, `
+		SELECT id_categoria, nombre
+		FROM categoria
+		ORDER BY nombre
+	`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	categories := make([]Category, 0)
+	for rows.Next() {
+		var category Category
+		if err := rows.Scan(&category.IDCategoria, &category.Nombre); err != nil {
+			return nil, err
+		}
+		categories = append(categories, category)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return categories, nil
+}
+
+func (m *Manager) Providers(ctx context.Context) ([]Provider, error) {
+	rows, err := m.conn.QueryContext(ctx, `
+		SELECT id_proveedor, nombre
+		FROM proveedor
+		ORDER BY nombre
+	`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	providers := make([]Provider, 0)
+	for rows.Next() {
+		var provider Provider
+		if err := rows.Scan(&provider.IDProveedor, &provider.Nombre); err != nil {
+			return nil, err
+		}
+		providers = append(providers, provider)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return providers, nil
+}
+
 type productScanner interface {
 	Scan(dest ...any) error
 }
@@ -250,6 +350,7 @@ func scanProduct(scanner productScanner) (Product, error) {
 		&product.IDProducto,
 		&product.IDCategoria,
 		&product.IDProveedor,
+		&product.Categoria,
 		&product.Precio,
 		&product.Stock,
 		&product.Nombre,

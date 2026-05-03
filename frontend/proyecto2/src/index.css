@@ -1,0 +1,65 @@
+@font-face {
+  font-family: "SF Pro Display Regular";
+  src: url("./assets/fonts/SFPRODISPLAYREGULAR.OTF") format("opentype");
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: "SF Pro Display Thin";
+  src: url("./assets/fonts/SFPRODISPLAYTHINITALIC.OTF") format("opentype");
+  font-weight: 300;
+}
+
+:root {
+  --content: #97b9ba;
+  --surface: #364344;
+  --surface-alt: #4c5b5d;
+  --interactive: #b3e3e5;
+  --interactive-hover: #93c9cb;
+  --danger: #c65c5c;
+  --danger-hover: #a94040;
+  color: var(--content);
+  background: var(--surface);
+  font-family: "SF Pro Display Regular", Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: var(--surface);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  border: none;
+  cursor: pointer;
+  transition: transform 160ms ease, background-color 160ms ease, color 160ms ease;
+}
+
+button:hover {
+  transform: translateY(-5%);
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+button:disabled:hover {
+  transform: none;
+}
+
+#root {
+  min-height: 100vh;
+}

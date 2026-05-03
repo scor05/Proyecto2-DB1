@@ -1,0 +1,46 @@
+import { useEffect, useMemo, useState } from "react"
+import { LoginPage } from "./login/LoginPage.jsx"
+import { ProductsPage } from "./products/ProductsPage.jsx"
+import { TopBar } from "./topbar/TopBar.jsx"
+import "./App.css"
+
+const savedEmployeeKey = "pcfast.employee"
+
+export function App() {
+  const [employee, setEmployee] = useState(() => {
+    const savedEmployee = localStorage.getItem(savedEmployeeKey)
+    return savedEmployee ? JSON.parse(savedEmployee) : null
+  })
+  const [page, setPage] = useState("productos")
+
+  useEffect(() => {
+    if (employee) {
+      localStorage.setItem(savedEmployeeKey, JSON.stringify(employee))
+    } else {
+      localStorage.removeItem(savedEmployeeKey)
+    }
+  }, [employee])
+
+  const pages = useMemo(() => [
+    { id: "productos", label: "Productos" },
+  ], [])
+
+  if (!employee) {
+    return <LoginPage onLogin={setEmployee} />
+  }
+
+  return (
+    <div className="app-shell">
+      <TopBar
+        employee={employee}
+        pages={pages}
+        currentPage={page}
+        onNavigate={setPage}
+        onLogout={() => setEmployee(null)}
+      />
+      <main className="app-content">
+        {page === "productos" && <ProductsPage />}
+      </main>
+    </div>
+  )
+}

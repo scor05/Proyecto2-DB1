@@ -1,0 +1,78 @@
+.product-card {
+  position: relative;
+  width: 260px;
+  height: 350px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 8px;
+  background: var(--surface-alt);
+  color: var(--content);
+  overflow: hidden;
+}
+
+.product-card-actions {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  display: flex;
+  gap: 6px;
+}
+
+.product-action-button {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: var(--interactive);
+  color: var(--surface);
+  font-size: 1rem;
+}
+
+.product-action-button:hover {
+  background: var(--interactive-hover);
+}
+
+.product-delete-button:hover {
+  background: var(--danger-hover);
+  color: #fff;
+}
+
+.product-image-slot {
+  width: 100%;
+  height: 140px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: var(--surface);
+  color: rgba(151, 185, 186, 0.8);
+  overflow: hidden;
+}
+
+.product-image-slot img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.product-card h2 {
+  width: 100%;
+  margin: 0;
+  color: var(--content);
+  font-size: 1.08rem;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.product-card p {
+  width: 100%;
+  margin: 0;
+  color: var(--content);
+  font-size: 0.9rem;
+  line-height: 1.25;
+}

@@ -1,0 +1,53 @@
+.app-shell {
+  min-height: 100vh;
+  background: var(--surface);
+}
+
+.app-content {
+  width: min(1160px, calc(100vw - 32px));
+  margin: 0 auto;
+  padding: 28px 0 48px;
+}
+
+.primary-button,
+.secondary-button,
+.danger-button,
+.icon-button {
+  min-height: 40px;
+  border-radius: 8px;
+  padding: 0 16px;
+  background: var(--interactive);
+  color: var(--surface);
+  font-weight: 700;
+}
+
+.primary-button:hover,
+.secondary-button:hover,
+.icon-button:hover {
+  background: var(--interactive-hover);
+}
+
+.danger-button {
+  background: var(--danger);
+  color: #fff;
+}
+
+.danger-button:hover {
+  background: var(--danger-hover);
+}
+
+.icon-button {
+  width: 40px;
+  padding: 0;
+  display: inline-grid;
+  place-items: center;
+  font-size: 1.25rem;
+}
+
+.page-error {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: rgba(198, 92, 92, 0.2);
+  color: #f1c7c7;
+}
