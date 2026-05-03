@@ -30,6 +30,11 @@ export const fetchProducts = () => apiRequest("/api/productos")
 export const fetchCategories = () => apiRequest("/api/categorias")
 export const fetchProviders = () => apiRequest("/api/proveedores")
 
+export const createProduct = (product) => apiRequest("/api/productos", {
+  method: "POST",
+  body: JSON.stringify(product),
+})
+
 export const updateProduct = (id, product) => apiRequest(`/api/productos/${id}`, {
   method: "PUT",
   body: JSON.stringify(product),

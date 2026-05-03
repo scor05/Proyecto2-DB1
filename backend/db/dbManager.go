@@ -158,6 +158,36 @@ func (m *Manager) Show(ctx context.Context, id int) (*Product, error) {
 	return &product, nil
 }
 
+func (m *Manager) Create(ctx context.Context, input ProductWrite) (*Product, error) {
+	if err := validateProductWrite(input); err != nil {
+		return nil, err
+	}
+
+	tx, err := m.conn.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	row := tx.QueryRowContext(ctx, `
+		INSERT INTO producto (id_categoria, id_proveedor, precio, stock, nombre, imagen, descripcion)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
+		RETURNING id_producto, id_categoria, id_proveedor,
+		          (SELECT nombre FROM categoria WHERE id_categoria = producto.id_categoria) AS categoria,
+		          precio, stock, nombre, imagen, descripcion
+	`, input.IDCategoria, input.IDProveedor, input.Precio, input.Stock, input.Nombre, optionalString(input.Imagen), input.Descripcion)
+
+	product, err := scanProduct(row)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+	return &product, nil
+}
+
 func (m *Manager) Update(ctx context.Context, id int, input ProductWrite) (*Product, error) {
 	if err := validateProductWrite(input); err != nil {
 		return nil, err

@@ -1,17 +1,53 @@
 import { useState } from "react"
 import "./ProductForm.css"
 
-export function ProductForm({ product, categories, providers, onSubmit, onCancel }) {
+function initialForm(product, categories, providers) {
+  return {
+    nombre: product?.nombre ?? "",
+    descripcion: product?.descripcion ?? "",
+    precio: product?.precio ?? "",
+    stock: product?.stock ?? "",
+    id_categoria: product?.id_categoria ?? categories[0]?.id_categoria ?? "",
+    id_proveedor: product?.id_proveedor ?? providers[0]?.id_proveedor ?? "",
+    imagen: product?.imagen ?? "",
+  }
+}
+
+function validateProduct(form) {
+  if (form.nombre.trim() === "") {
+    return "El nombre del producto es obligatorio."
+  }
+  if (form.descripcion.trim() === "") {
+    return "La descripción del producto es obligatoria."
+  }
+  if (!form.id_categoria) {
+    return "Debes seleccionar una categoría."
+  }
+  if (!form.id_proveedor) {
+    return "Debes seleccionar un proveedor."
+  }
+  if (Number(form.precio) <= 0 || Number.isNaN(Number(form.precio))) {
+    return "El precio debe ser mayor a 0."
+  }
+  if (Number(form.stock) < 0 || Number.isNaN(Number(form.stock))) {
+    return "El stock no puede ser negativo."
+  }
+  return ""
+}
+
+export function ProductForm({
+  product,
+  categories,
+  providers,
+  onSubmit,
+  onCancel,
+  submitLabel = "Guardar cambios",
+}) {
   const [form, setForm] = useState({
-    nombre: product.nombre,
-    descripcion: product.descripcion,
-    precio: product.precio,
-    stock: product.stock,
-    id_categoria: product.id_categoria,
-    id_proveedor: product.id_proveedor,
-    imagen: product.imagen ?? "",
+    ...initialForm(product, categories, providers),
   })
   const [saving, setSaving] = useState(false)
+  const [formError, setFormError] = useState("")
 
   function updateField(field, value) {
     setForm((current) => ({ ...current, [field]: value }))
@@ -19,9 +55,16 @@ export function ProductForm({ product, categories, providers, onSubmit, onCancel
 
   async function handleSubmit(event) {
     event.preventDefault()
+    const validationMessage = validateProduct(form)
+    if (validationMessage) {
+      setFormError(validationMessage)
+      return
+    }
+
+    setFormError("")
     setSaving(true)
 
-    await onSubmit({
+    const success = await onSubmit({
       nombre: form.nombre,
       descripcion: form.descripcion,
       precio: Number(form.precio),
@@ -31,7 +74,9 @@ export function ProductForm({ product, categories, providers, onSubmit, onCancel
       imagen: form.imagen.trim() === "" ? null : form.imagen,
     })
 
-    setSaving(false)
+    if (!success) {
+      setSaving(false)
+    }
   }
 
   return (
@@ -76,12 +121,13 @@ export function ProductForm({ product, categories, providers, onSubmit, onCancel
         Imagen
         <input value={form.imagen} onChange={(event) => updateField("imagen", event.target.value)} />
       </label>
+      {formError && <p className="form-error">{formError}</p>}
       <div className="modal-actions">
         <button className="secondary-button" type="button" onClick={onCancel}>
           Cancelar
         </button>
         <button className="primary-button" type="submit" disabled={saving}>
-          {saving ? "Guardando..." : "Guardar cambios"}
+          {saving ? "Guardando..." : submitLabel}
         </button>
       </div>
     </form>

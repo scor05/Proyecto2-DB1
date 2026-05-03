@@ -51,3 +51,11 @@
   background: rgba(198, 92, 92, 0.2);
   color: #f1c7c7;
 }
+
+.page-success {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: rgba(179, 227, 229, 0.18);
+  color: var(--interactive);
+}
