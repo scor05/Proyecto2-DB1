@@ -65,9 +65,23 @@ type Category struct {
 	Nombre      string `json:"nombre"`
 }
 
+type CategoryWrite struct {
+	Nombre string `json:"nombre"`
+}
+
 type Provider struct {
 	IDProveedor int    `json:"id_proveedor"`
 	Nombre      string `json:"nombre"`
+	Telefono    string `json:"telefono"`
+	Correo      string `json:"correo"`
+	Direccion   string `json:"direccion"`
+}
+
+type ProviderWrite struct {
+	Nombre    string `json:"nombre"`
+	Telefono  string `json:"telefono"`
+	Correo    string `json:"correo"`
+	Direccion string `json:"direccion"`
 }
 
 type Client struct {
@@ -370,9 +384,85 @@ func (m *Manager) Categories(ctx context.Context) ([]Category, error) {
 	return categories, nil
 }
 
+func (m *Manager) Category(ctx context.Context, id int) (*Category, error) {
+	row := m.conn.QueryRowContext(ctx, `
+		SELECT id_categoria, nombre
+		FROM categoria
+		WHERE id_categoria = $1
+	`, id)
+
+	var category Category
+	if err := row.Scan(&category.IDCategoria, &category.Nombre); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		return nil, err
+	}
+	return &category, nil
+}
+
+func (m *Manager) CreateCategory(ctx context.Context, input CategoryWrite) (*Category, error) {
+	if err := validateCategoryWrite(input); err != nil {
+		return nil, err
+	}
+
+	row := m.conn.QueryRowContext(ctx, `
+		INSERT INTO categoria (nombre)
+		VALUES ($1)
+		RETURNING id_categoria, nombre
+	`, strings.TrimSpace(input.Nombre))
+
+	var category Category
+	if err := row.Scan(&category.IDCategoria, &category.Nombre); err != nil {
+		return nil, err
+	}
+	return &category, nil
+}
+
+func (m *Manager) UpdateCategory(ctx context.Context, id int, input CategoryWrite) (*Category, error) {
+	if err := validateCategoryWrite(input); err != nil {
+		return nil, err
+	}
+
+	row := m.conn.QueryRowContext(ctx, `
+		UPDATE categoria
+		SET nombre = $1
+		WHERE id_categoria = $2
+		RETURNING id_categoria, nombre
+	`, strings.TrimSpace(input.Nombre), id)
+
+	var category Category
+	if err := row.Scan(&category.IDCategoria, &category.Nombre); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		return nil, err
+	}
+	return &category, nil
+}
+
+func (m *Manager) DestroyCategory(ctx context.Context, id int) error {
+	result, err := m.conn.ExecContext(ctx, `
+		DELETE FROM categoria
+		WHERE id_categoria = $1
+	`, id)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return ErrNotFound
+	}
+	return nil
+}
+
 func (m *Manager) Providers(ctx context.Context) ([]Provider, error) {
 	rows, err := m.conn.QueryContext(ctx, `
-		SELECT id_proveedor, nombre
+		SELECT id_proveedor, nombre, telefono, correo, direccion
 		FROM proveedor
 		ORDER BY nombre
 	`)
@@ -384,7 +474,7 @@ func (m *Manager) Providers(ctx context.Context) ([]Provider, error) {
 	providers := make([]Provider, 0)
 	for rows.Next() {
 		var provider Provider
-		if err := rows.Scan(&provider.IDProveedor, &provider.Nombre); err != nil {
+		if err := rows.Scan(&provider.IDProveedor, &provider.Nombre, &provider.Telefono, &provider.Correo, &provider.Direccion); err != nil {
 			return nil, err
 		}
 		providers = append(providers, provider)
@@ -393,6 +483,85 @@ func (m *Manager) Providers(ctx context.Context) ([]Provider, error) {
 		return nil, err
 	}
 	return providers, nil
+}
+
+func (m *Manager) Provider(ctx context.Context, id int) (*Provider, error) {
+	row := m.conn.QueryRowContext(ctx, `
+		SELECT id_proveedor, nombre, telefono, correo, direccion
+		FROM proveedor
+		WHERE id_proveedor = $1
+	`, id)
+
+	var provider Provider
+	if err := row.Scan(&provider.IDProveedor, &provider.Nombre, &provider.Telefono, &provider.Correo, &provider.Direccion); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		return nil, err
+	}
+	return &provider, nil
+}
+
+func (m *Manager) CreateProvider(ctx context.Context, input ProviderWrite) (*Provider, error) {
+	if err := validateProviderWrite(input); err != nil {
+		return nil, err
+	}
+
+	row := m.conn.QueryRowContext(ctx, `
+		INSERT INTO proveedor (nombre, telefono, correo, direccion)
+		VALUES ($1, $2, $3, $4)
+		RETURNING id_proveedor, nombre, telefono, correo, direccion
+	`, strings.TrimSpace(input.Nombre), strings.TrimSpace(input.Telefono), strings.TrimSpace(input.Correo), strings.TrimSpace(input.Direccion))
+
+	var provider Provider
+	if err := row.Scan(&provider.IDProveedor, &provider.Nombre, &provider.Telefono, &provider.Correo, &provider.Direccion); err != nil {
+		return nil, err
+	}
+	return &provider, nil
+}
+
+func (m *Manager) UpdateProvider(ctx context.Context, id int, input ProviderWrite) (*Provider, error) {
+	if err := validateProviderWrite(input); err != nil {
+		return nil, err
+	}
+
+	row := m.conn.QueryRowContext(ctx, `
+		UPDATE proveedor
+		SET nombre = $1,
+		    telefono = $2,
+		    correo = $3,
+		    direccion = $4
+		WHERE id_proveedor = $5
+		RETURNING id_proveedor, nombre, telefono, correo, direccion
+	`, strings.TrimSpace(input.Nombre), strings.TrimSpace(input.Telefono), strings.TrimSpace(input.Correo), strings.TrimSpace(input.Direccion), id)
+
+	var provider Provider
+	if err := row.Scan(&provider.IDProveedor, &provider.Nombre, &provider.Telefono, &provider.Correo, &provider.Direccion); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		return nil, err
+	}
+	return &provider, nil
+}
+
+func (m *Manager) DestroyProvider(ctx context.Context, id int) error {
+	result, err := m.conn.ExecContext(ctx, `
+		DELETE FROM proveedor
+		WHERE id_proveedor = $1
+	`, id)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return ErrNotFound
+	}
+	return nil
 }
 
 func (m *Manager) Employees(ctx context.Context) ([]Employee, error) {
@@ -733,6 +902,30 @@ func validateProductWrite(input ProductWrite) error {
 		return fmt.Errorf("%w: nombre is required", ErrInvalidInput)
 	case strings.TrimSpace(input.Descripcion) == "":
 		return fmt.Errorf("%w: descripcion is required", ErrInvalidInput)
+	default:
+		return nil
+	}
+}
+
+func validateCategoryWrite(input CategoryWrite) error {
+	if strings.TrimSpace(input.Nombre) == "" {
+		return fmt.Errorf("%w: nombre is required", ErrInvalidInput)
+	}
+	return nil
+}
+
+func validateProviderWrite(input ProviderWrite) error {
+	switch {
+	case strings.TrimSpace(input.Nombre) == "":
+		return fmt.Errorf("%w: nombre is required", ErrInvalidInput)
+	case strings.TrimSpace(input.Telefono) == "":
+		return fmt.Errorf("%w: telefono is required", ErrInvalidInput)
+	case strings.TrimSpace(input.Correo) == "":
+		return fmt.Errorf("%w: correo is required", ErrInvalidInput)
+	case !strings.Contains(input.Correo, "@"):
+		return fmt.Errorf("%w: correo must be a valid email", ErrInvalidInput)
+	case strings.TrimSpace(input.Direccion) == "":
+		return fmt.Errorf("%w: direccion is required", ErrInvalidInput)
 	default:
 		return nil
 	}

@@ -63,3 +63,37 @@ func CreateCompra(manager *database.Manager) http.HandlerFunc {
 		WriteJSON(w, http.StatusCreated, compra)
 	}
 }
+
+func CreateCategory(manager *database.Manager) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var input database.CategoryWrite
+		if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+			WriteError(w, http.StatusBadRequest, err)
+			return
+		}
+
+		category, err := manager.CreateCategory(r.Context(), input)
+		if err != nil {
+			WriteDBError(w, err)
+			return
+		}
+		WriteJSON(w, http.StatusCreated, category)
+	}
+}
+
+func CreateProvider(manager *database.Manager) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var input database.ProviderWrite
+		if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+			WriteError(w, http.StatusBadRequest, err)
+			return
+		}
+
+		provider, err := manager.CreateProvider(r.Context(), input)
+		if err != nil {
+			WriteDBError(w, err)
+			return
+		}
+		WriteJSON(w, http.StatusCreated, provider)
+	}
+}

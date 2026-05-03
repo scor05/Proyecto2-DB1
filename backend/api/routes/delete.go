@@ -36,3 +36,35 @@ func DestroyCompra(manager *database.Manager) http.HandlerFunc {
 		w.WriteHeader(http.StatusNoContent)
 	}
 }
+
+func DestroyCategory(manager *database.Manager) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id, ok := CategoryIDFromRequest(w, r)
+		if !ok {
+			return
+		}
+
+		if err := manager.DestroyCategory(r.Context(), id); err != nil {
+			WriteDBError(w, err)
+			return
+		}
+
+		w.WriteHeader(http.StatusNoContent)
+	}
+}
+
+func DestroyProvider(manager *database.Manager) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id, ok := ProviderIDFromRequest(w, r)
+		if !ok {
+			return
+		}
+
+		if err := manager.DestroyProvider(r.Context(), id); err != nil {
+			WriteDBError(w, err)
+			return
+		}
+
+		w.WriteHeader(http.StatusNoContent)
+	}
+}

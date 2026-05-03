@@ -1,0 +1,91 @@
+.entity-page {
+  color: var(--content);
+}
+
+.entity-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.entity-search {
+  width: 300px;
+  height: 40px;
+  border: 1px solid rgba(179, 227, 229, 0.35);
+  border-radius: 8px;
+  padding: 0 12px;
+  background: var(--surface-alt);
+  color: var(--content);
+}
+
+.entity-search::placeholder {
+  color: rgba(151, 185, 186, 0.72);
+}
+
+.entity-add-button {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: var(--interactive);
+  color: var(--surface);
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.entity-add-button:hover {
+  background: var(--interactive-hover);
+}
+
+.entity-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: 8px;
+  background: var(--surface-alt);
+}
+
+.entity-table {
+  width: 100%;
+  min-width: 520px;
+  border-collapse: collapse;
+}
+
+.entity-table th,
+.entity-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(179, 227, 229, 0.15);
+  color: var(--content);
+  text-align: left;
+}
+
+.entity-table th {
+  background: rgba(54, 67, 68, 0.55);
+  font-weight: 700;
+}
+
+.entity-table tbody tr {
+  cursor: pointer;
+  transition: background-color 160ms ease;
+}
+
+.entity-table tbody tr:hover {
+  background: rgba(54, 67, 68, 0.55);
+}
+
+.entity-status {
+  margin: 0;
+  color: var(--content);
+}
+
+@media (max-width: 640px) {
+  .entity-toolbar {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .entity-search {
+    width: min(300px, 100%);
+  }
+}

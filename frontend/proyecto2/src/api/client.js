@@ -60,3 +60,31 @@ export const updateCompra = (id, compra) => apiRequest(`/api/compras/${id}`, {
 export const deleteCompra = (id) => apiRequest(`/api/compras/${id}`, {
   method: "DELETE",
 })
+
+export const createCategory = (category) => apiRequest("/api/categorias", {
+  method: "POST",
+  body: JSON.stringify(category),
+})
+
+export const updateCategory = (id, category) => apiRequest(`/api/categorias/${id}`, {
+  method: "PUT",
+  body: JSON.stringify(category),
+})
+
+export const deleteCategory = (id) => apiRequest(`/api/categorias/${id}`, {
+  method: "DELETE",
+})
+
+export const createProvider = (provider) => apiRequest("/api/proveedores", {
+  method: "POST",
+  body: JSON.stringify(provider),
+})
+
+export const updateProvider = (id, provider) => apiRequest(`/api/proveedores/${id}`, {
+  method: "PUT",
+  body: JSON.stringify(provider),
+})
+
+export const deleteProvider = (id) => apiRequest(`/api/proveedores/${id}`, {
+  method: "DELETE",
+})

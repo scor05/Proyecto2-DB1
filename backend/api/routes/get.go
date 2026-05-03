@@ -45,6 +45,22 @@ func ListCategories(manager *database.Manager) http.HandlerFunc {
 	}
 }
 
+func ShowCategory(manager *database.Manager) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id, ok := CategoryIDFromRequest(w, r)
+		if !ok {
+			return
+		}
+
+		category, err := manager.Category(r.Context(), id)
+		if err != nil {
+			WriteDBError(w, err)
+			return
+		}
+		WriteJSON(w, http.StatusOK, category)
+	}
+}
+
 func ListProviders(manager *database.Manager) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		providers, err := manager.Providers(r.Context())
@@ -53,6 +69,22 @@ func ListProviders(manager *database.Manager) http.HandlerFunc {
 			return
 		}
 		WriteJSON(w, http.StatusOK, providers)
+	}
+}
+
+func ShowProvider(manager *database.Manager) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id, ok := ProviderIDFromRequest(w, r)
+		if !ok {
+			return
+		}
+
+		provider, err := manager.Provider(r.Context(), id)
+		if err != nil {
+			WriteDBError(w, err)
+			return
+		}
+		WriteJSON(w, http.StatusOK, provider)
 	}
 }
 
