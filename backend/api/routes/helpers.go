@@ -19,6 +19,15 @@ func ProductIDFromRequest(w http.ResponseWriter, r *http.Request) (int, bool) {
 	return id, true
 }
 
+func CompraIDFromRequest(w http.ResponseWriter, r *http.Request) (int, bool) {
+	id, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil || id <= 0 {
+		WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid compra id"))
+		return 0, false
+	}
+	return id, true
+}
+
 func WriteDBError(w http.ResponseWriter, err error) {
 	switch {
 	case errors.Is(err, database.ErrNotFound):

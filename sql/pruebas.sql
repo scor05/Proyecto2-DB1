@@ -198,4 +198,14 @@ INSERT INTO producto_compra (id_compra, id_producto, cantidad_producto) VALUES
     (24, 5, 1),
     (25, 6, 1);
 
+UPDATE compra c
+SET total_compra = detalle.total
+FROM (
+    SELECT pc.id_compra, SUM(p.precio * pc.cantidad_producto) AS total
+    FROM producto_compra pc
+    JOIN producto p ON p.id_producto = pc.id_producto
+    GROUP BY pc.id_compra
+) detalle
+WHERE detalle.id_compra = c.id_compra;
+
 COMMIT;

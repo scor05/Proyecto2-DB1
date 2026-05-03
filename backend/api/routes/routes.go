@@ -17,6 +17,13 @@ func RegisterRoutes(mux *http.ServeMux, manager *database.Manager) {
 	mux.HandleFunc("DELETE /api/productos/{id}", DestroyProduct(manager))
 	mux.HandleFunc("GET /api/categorias", ListCategories(manager))
 	mux.HandleFunc("GET /api/proveedores", ListProviders(manager))
+	mux.HandleFunc("GET /api/empleados", ListEmployees(manager))
+	mux.HandleFunc("GET /api/clientes", ListClients(manager))
+	mux.HandleFunc("POST /api/compras", CreateCompra(manager))
+	mux.HandleFunc("GET /api/compras", IndexCompras(manager))
+	mux.HandleFunc("GET /api/compras/{id}", ShowCompra(manager))
+	mux.HandleFunc("PUT /api/compras/{id}", UpdateCompra(manager))
+	mux.HandleFunc("DELETE /api/compras/{id}", DestroyCompra(manager))
 }
 
 func Health(manager *database.Manager) http.HandlerFunc {

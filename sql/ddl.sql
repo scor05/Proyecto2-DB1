@@ -49,6 +49,7 @@ CREATE TABLE compra (
     id_empleado INTEGER NOT NULL,
     id_cliente INTEGER NOT NULL,
     fecha_compra DATE NOT NULL,
+    total_compra DECIMAL(10, 2) NOT NULL DEFAULT 0 CHECK (total_compra >= 0),
     FOREIGN KEY (id_empleado) REFERENCES empleado (id_empleado),
     FOREIGN KEY (id_cliente) REFERENCES cliente (id_cliente)
 );

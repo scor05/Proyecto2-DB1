@@ -31,6 +31,10 @@
   font-size: 1.35rem;
 }
 
+.modal-header .icon-button:hover {
+  transform: none;
+}
+
 .modal-actions {
   display: flex;
   justify-content: flex-end;

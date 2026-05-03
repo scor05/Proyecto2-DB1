@@ -70,6 +70,33 @@ type Provider struct {
 	Nombre      string `json:"nombre"`
 }
 
+type Client struct {
+	IDCliente int    `json:"id_cliente"`
+	Nombre    string `json:"nombre"`
+	Telefono  string `json:"telefono"`
+	Correo    string `json:"correo"`
+}
+
+type Compra struct {
+	IDCompra       int     `json:"id_compra"`
+	IDEmpleado     int     `json:"id_empleado"`
+	NombreEmpleado string  `json:"nombre_empleado"`
+	IDCliente      int     `json:"id_cliente"`
+	NombreCliente  string  `json:"nombre_cliente"`
+	FechaCompra    string  `json:"fecha_compra"`
+	IDProducto     int     `json:"id_producto"`
+	Productos      string  `json:"productos"`
+	TotalCompra    float64 `json:"total_compra"`
+}
+
+type CompraWrite struct {
+	IDEmpleado  int     `json:"id_empleado"`
+	IDCliente   int     `json:"id_cliente"`
+	FechaCompra string  `json:"fecha_compra"`
+	IDProducto  int     `json:"id_producto"`
+	TotalCompra float64 `json:"total_compra"`
+}
+
 func NewManager() (*Manager, error) {
 	dsn := fmt.Sprintf(
 		"postgres://%s:%s@%s:%s/%s?sslmode=disable",
@@ -368,8 +395,242 @@ func (m *Manager) Providers(ctx context.Context) ([]Provider, error) {
 	return providers, nil
 }
 
+func (m *Manager) Employees(ctx context.Context) ([]Employee, error) {
+	rows, err := m.conn.QueryContext(ctx, `
+		SELECT id_empleado, nombre, estado, correo
+		FROM empleado
+		ORDER BY nombre
+	`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	employees := make([]Employee, 0)
+	for rows.Next() {
+		var employee Employee
+		if err := rows.Scan(&employee.IDEmpleado, &employee.Nombre, &employee.Estado, &employee.Correo); err != nil {
+			return nil, err
+		}
+		employees = append(employees, employee)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return employees, nil
+}
+
+func (m *Manager) Clients(ctx context.Context) ([]Client, error) {
+	rows, err := m.conn.QueryContext(ctx, `
+		SELECT id_cliente, nombre, telefono, correo
+		FROM cliente
+		ORDER BY nombre
+	`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	clients := make([]Client, 0)
+	for rows.Next() {
+		var client Client
+		if err := rows.Scan(&client.IDCliente, &client.Nombre, &client.Telefono, &client.Correo); err != nil {
+			return nil, err
+		}
+		clients = append(clients, client)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return clients, nil
+}
+
+func (m *Manager) Compras(ctx context.Context) ([]Compra, error) {
+	rows, err := m.conn.QueryContext(ctx, `
+		SELECT c.id_compra,
+		       c.id_empleado,
+		       e.nombre AS nombre_empleado,
+		       c.id_cliente,
+		       cl.nombre AS nombre_cliente,
+		       c.fecha_compra,
+		       COALESCE(MIN(pc.id_producto), 0) AS id_producto,
+		       COALESCE(string_agg(p.nombre, ', ' ORDER BY p.nombre), 'Sin productos') AS productos,
+		       c.total_compra
+		FROM compra c
+		JOIN empleado e ON e.id_empleado = c.id_empleado
+		JOIN cliente cl ON cl.id_cliente = c.id_cliente
+		LEFT JOIN producto_compra pc ON pc.id_compra = c.id_compra
+		LEFT JOIN producto p ON p.id_producto = pc.id_producto
+		GROUP BY c.id_compra, c.id_empleado, e.nombre, c.id_cliente, cl.nombre, c.fecha_compra, c.total_compra
+		ORDER BY c.id_compra
+	`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	compras := make([]Compra, 0)
+	for rows.Next() {
+		compra, err := scanCompra(rows)
+		if err != nil {
+			return nil, err
+		}
+		compras = append(compras, compra)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return compras, nil
+}
+
+func (m *Manager) Compra(ctx context.Context, id int) (*Compra, error) {
+	return m.compraByID(ctx, m.conn, id)
+}
+
+func (m *Manager) CreateCompra(ctx context.Context, input CompraWrite) (*Compra, error) {
+	if err := validateCompraWrite(input); err != nil {
+		return nil, err
+	}
+
+	tx, err := m.conn.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	row := tx.QueryRowContext(ctx, `
+		INSERT INTO compra (id_empleado, id_cliente, fecha_compra, total_compra)
+		VALUES ($1, $2, $3, $4)
+		RETURNING id_compra
+	`, input.IDEmpleado, input.IDCliente, input.FechaCompra, input.TotalCompra)
+
+	var id int
+	if err := row.Scan(&id); err != nil {
+		return nil, err
+	}
+
+	if _, err := tx.ExecContext(ctx, `
+		INSERT INTO producto_compra (id_compra, id_producto, cantidad_producto)
+		VALUES ($1, $2, 1)
+	`, id, input.IDProducto); err != nil {
+		return nil, err
+	}
+
+	compra, err := m.compraByID(ctx, tx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+	return compra, nil
+}
+
+func (m *Manager) UpdateCompra(ctx context.Context, id int, input CompraWrite) (*Compra, error) {
+	if err := validateCompraWrite(input); err != nil {
+		return nil, err
+	}
+
+	tx, err := m.conn.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	committed := false
+	defer func() {
+		if !committed {
+			_ = tx.Rollback()
+		}
+	}()
+
+	result, err := tx.ExecContext(ctx, `
+		UPDATE compra
+		SET id_empleado = $1,
+		    id_cliente = $2,
+		    fecha_compra = $3,
+		    total_compra = $4
+		WHERE id_compra = $5
+	`, input.IDEmpleado, input.IDCliente, input.FechaCompra, input.TotalCompra, id)
+	if err != nil {
+		return nil, fmt.Errorf("transaction rollback after update error: %w", err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return nil, fmt.Errorf("transaction rollback after rows affected error: %w", err)
+	}
+	if rowsAffected == 0 {
+		return nil, ErrNotFound
+	}
+
+	if _, err := tx.ExecContext(ctx, `
+		DELETE FROM producto_compra
+		WHERE id_compra = $1
+	`, id); err != nil {
+		return nil, fmt.Errorf("transaction rollback after detail delete error: %w", err)
+	}
+
+	if _, err := tx.ExecContext(ctx, `
+		INSERT INTO producto_compra (id_compra, id_producto, cantidad_producto)
+		VALUES ($1, $2, 1)
+	`, id, input.IDProducto); err != nil {
+		return nil, fmt.Errorf("transaction rollback after detail insert error: %w", err)
+	}
+
+	compra, err := m.compraByID(ctx, tx, id)
+	if err != nil {
+		return nil, fmt.Errorf("transaction rollback after reload error: %w", err)
+	}
+	if err := tx.Commit(); err != nil {
+		return nil, fmt.Errorf("transaction commit failed: %w", err)
+	}
+	committed = true
+	return compra, nil
+}
+
+func (m *Manager) DestroyCompra(ctx context.Context, id int) error {
+	tx, err := m.conn.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	if _, err := tx.ExecContext(ctx, `
+		DELETE FROM producto_compra
+		WHERE id_compra = $1
+	`, id); err != nil {
+		return err
+	}
+
+	result, err := tx.ExecContext(ctx, `
+		DELETE FROM compra
+		WHERE id_compra = $1
+	`, id)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return ErrNotFound
+	}
+
+	return tx.Commit()
+}
+
 type productScanner interface {
 	Scan(dest ...any) error
+}
+
+type compraScanner interface {
+	Scan(dest ...any) error
+}
+
+type compraQueryer interface {
+	QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row
 }
 
 func scanProduct(scanner productScanner) (Product, error) {
@@ -396,6 +657,66 @@ func scanProduct(scanner productScanner) (Product, error) {
 	}
 
 	return product, nil
+}
+
+func scanCompra(scanner compraScanner) (Compra, error) {
+	var compra Compra
+	var fecha time.Time
+	var productos sql.NullString
+
+	err := scanner.Scan(
+		&compra.IDCompra,
+		&compra.IDEmpleado,
+		&compra.NombreEmpleado,
+		&compra.IDCliente,
+		&compra.NombreCliente,
+		&fecha,
+		&compra.IDProducto,
+		&productos,
+		&compra.TotalCompra,
+	)
+	if err != nil {
+		return Compra{}, err
+	}
+
+	compra.FechaCompra = fecha.Format("2006-01-02")
+	if productos.Valid && productos.String != "" {
+		compra.Productos = productos.String
+	} else {
+		compra.Productos = "Sin productos"
+	}
+
+	return compra, nil
+}
+
+func (m *Manager) compraByID(ctx context.Context, queryer compraQueryer, id int) (*Compra, error) {
+	row := queryer.QueryRowContext(ctx, `
+		SELECT c.id_compra,
+		       c.id_empleado,
+		       e.nombre AS nombre_empleado,
+		       c.id_cliente,
+		       cl.nombre AS nombre_cliente,
+		       c.fecha_compra,
+		       COALESCE(MIN(pc.id_producto), 0) AS id_producto,
+		       COALESCE(string_agg(p.nombre, ', ' ORDER BY p.nombre), 'Sin productos') AS productos,
+		       c.total_compra
+		FROM compra c
+		JOIN empleado e ON e.id_empleado = c.id_empleado
+		JOIN cliente cl ON cl.id_cliente = c.id_cliente
+		LEFT JOIN producto_compra pc ON pc.id_compra = c.id_compra
+		LEFT JOIN producto p ON p.id_producto = pc.id_producto
+		WHERE c.id_compra = $1
+		GROUP BY c.id_compra, c.id_empleado, e.nombre, c.id_cliente, cl.nombre, c.fecha_compra, c.total_compra
+	`, id)
+
+	compra, err := scanCompra(row)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, ErrNotFound
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &compra, nil
 }
 
 func validateProductWrite(input ProductWrite) error {
@@ -446,6 +767,27 @@ func validateProductPatch(input ProductPatch) error {
 	if input.Descripcion != nil && strings.TrimSpace(*input.Descripcion) == "" {
 		return fmt.Errorf("%w: descripcion cannot be empty", ErrInvalidInput)
 	}
+	return nil
+}
+
+func validateCompraWrite(input CompraWrite) error {
+	switch {
+	case input.IDEmpleado <= 0:
+		return fmt.Errorf("%w: id_empleado must be greater than 0", ErrInvalidInput)
+	case input.IDCliente <= 0:
+		return fmt.Errorf("%w: id_cliente must be greater than 0", ErrInvalidInput)
+	case strings.TrimSpace(input.FechaCompra) == "":
+		return fmt.Errorf("%w: fecha_compra is required", ErrInvalidInput)
+	case input.IDProducto <= 0:
+		return fmt.Errorf("%w: id_producto must be greater than 0", ErrInvalidInput)
+	case input.TotalCompra < 0:
+		return fmt.Errorf("%w: total_compra cannot be negative", ErrInvalidInput)
+	}
+
+	if _, err := time.Parse("2006-01-02", input.FechaCompra); err != nil {
+		return fmt.Errorf("%w: fecha_compra must use YYYY-MM-DD format", ErrInvalidInput)
+	}
+
 	return nil
 }
 

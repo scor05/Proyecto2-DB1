@@ -29,6 +29,9 @@ export const loginEmployee = (correo) => apiRequest("/api/login", {
 export const fetchProducts = () => apiRequest("/api/productos")
 export const fetchCategories = () => apiRequest("/api/categorias")
 export const fetchProviders = () => apiRequest("/api/proveedores")
+export const fetchEmployees = () => apiRequest("/api/empleados")
+export const fetchClients = () => apiRequest("/api/clientes")
+export const fetchCompras = () => apiRequest("/api/compras")
 
 export const createProduct = (product) => apiRequest("/api/productos", {
   method: "POST",
@@ -41,5 +44,19 @@ export const updateProduct = (id, product) => apiRequest(`/api/productos/${id}`,
 })
 
 export const deleteProduct = (id) => apiRequest(`/api/productos/${id}`, {
+  method: "DELETE",
+})
+
+export const createCompra = (compra) => apiRequest("/api/compras", {
+  method: "POST",
+  body: JSON.stringify(compra),
+})
+
+export const updateCompra = (id, compra) => apiRequest(`/api/compras/${id}`, {
+  method: "PUT",
+  body: JSON.stringify(compra),
+})
+
+export const deleteCompra = (id) => apiRequest(`/api/compras/${id}`, {
   method: "DELETE",
 })

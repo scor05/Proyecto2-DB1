@@ -1,0 +1,100 @@
+.compras-page {
+  color: var(--content);
+}
+
+.compras-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.compras-search {
+  width: 300px;
+  height: 40px;
+  border: 1px solid rgba(179, 227, 229, 0.35);
+  border-radius: 8px;
+  padding: 0 12px;
+  background: var(--surface-alt);
+  color: var(--content);
+}
+
+.compras-search::placeholder {
+  color: rgba(151, 185, 186, 0.72);
+}
+
+.add-compra-button,
+.csv-button {
+  height: 40px;
+  border-radius: 8px;
+  background: var(--interactive);
+  color: var(--surface);
+  font-weight: 700;
+}
+
+.add-compra-button {
+  width: 40px;
+  display: grid;
+  place-items: center;
+  font-size: 1.5rem;
+}
+
+.csv-button {
+  padding: 0 16px;
+}
+
+.add-compra-button:hover,
+.csv-button:hover {
+  background: var(--interactive-hover);
+}
+
+.compras-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: 8px;
+  background: var(--surface-alt);
+}
+
+.compras-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 920px;
+}
+
+.compras-table th,
+.compras-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(179, 227, 229, 0.15);
+  color: var(--content);
+  text-align: left;
+}
+
+.compras-table th {
+  background: rgba(54, 67, 68, 0.55);
+  font-weight: 700;
+}
+
+.compras-table tbody tr {
+  cursor: pointer;
+  transition: background-color 160ms ease;
+}
+
+.compras-table tbody tr:hover {
+  background: rgba(54, 67, 68, 0.55);
+}
+
+.compras-status {
+  margin: 0;
+  color: var(--content);
+}
+
+@media (max-width: 640px) {
+  .compras-toolbar {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .compras-search {
+    width: min(300px, 100%);
+  }
+}

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react"
+import { ComprasPage } from "./compras/ComprasPage.jsx"
 import { LoginPage } from "./login/LoginPage.jsx"
 import { ProductsPage } from "./products/ProductsPage.jsx"
 import { TopBar } from "./topbar/TopBar.jsx"
@@ -23,6 +24,7 @@ export function App() {
 
   const pages = useMemo(() => [
     { id: "productos", label: "Productos" },
+    { id: "compras", label: "Compras" },
   ], [])
 
   if (!employee) {
@@ -40,6 +42,7 @@ export function App() {
       />
       <main className="app-content">
         {page === "productos" && <ProductsPage />}
+        {page === "compras" && <ComprasPage employee={employee} />}
       </main>
     </div>
   )

@@ -28,3 +28,26 @@ func UpdateProduct(manager *database.Manager) http.HandlerFunc {
 		WriteJSON(w, http.StatusOK, product)
 	}
 }
+
+func UpdateCompra(manager *database.Manager) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id, ok := CompraIDFromRequest(w, r)
+		if !ok {
+			return
+		}
+
+		var input database.CompraWrite
+		if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+			WriteError(w, http.StatusBadRequest, err)
+			return
+		}
+
+		compra, err := manager.UpdateCompra(r.Context(), id, input)
+		if err != nil {
+			WriteDBError(w, err)
+			return
+		}
+
+		WriteJSON(w, http.StatusOK, compra)
+	}
+}
