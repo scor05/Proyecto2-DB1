@@ -13,19 +13,20 @@ Con respecto a el código SQL, se realizaron tres cosas principales: un DDL basa
 # Sección #2: Docker
 En este proyecto se puede también encontrar un archivo `.env.example`, el cual tiene las credenciales y variables de entorno necesarias para correr el código (para no tener que subir el mismo `.env`).
 
-Para levantar el proyecto desde cero:
+Para levantar el proyecto desde cero se debe de ejecutar lo siguiente desde la carpeta root del repositorio:
 
 ```bash
 cp .env.example .env
 docker compose up --build
 ```
+(o en Windows, simplemente copiar el contenido de `.env.example` a un archivo `.env`)
 
-Servicios disponibles:
+## Servicios disponibles:
 
-- Frontend React/Vite: `http://localhost:5173`
-- Backend Go HTTP API: `http://localhost:8080`
-- Endpoint de prueba del backend: `http://localhost:8080/api/health`
+- Frontend con React: `http://localhost:5173`
+- Backend de Go: `http://localhost:8080`
 - PostgreSQL local: `localhost:5433`
+- Endpoint de prueba: `http://localhost:8080/api/health`
 
 Las credenciales obligatorias para la base de datos son:
 
