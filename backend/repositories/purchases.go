@@ -47,23 +47,26 @@ func (r *Repository) CreateCompra(ctx context.Context, input models.CompraWrite)
 
 	var compra *models.Compra
 	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		var id int
-		if err := tx.Raw(`
-			INSERT INTO compra (id_empleado, id_cliente, fecha_compra, total_compra)
-			VALUES (?, ?, ?, ?)
-			RETURNING id_compra
-		`, input.IDEmpleado, input.IDCliente, input.FechaCompra, input.TotalCompra).Scan(&id).Error; err != nil {
+		purchase := models.Compra{
+			IDEmpleado:  input.IDEmpleado,
+			IDCliente:   input.IDCliente,
+			FechaCompra: input.FechaCompra,
+			TotalCompra: input.TotalCompra,
+		}
+		if err := tx.Create(&purchase).Error; err != nil {
 			return err
 		}
 
-		if err := tx.Exec(`
-			INSERT INTO producto_compra (id_compra, id_producto, cantidad_producto)
-			VALUES (?, ?, 1)
-		`, id, input.IDProducto).Error; err != nil {
+		item := models.ProductCompra{
+			IDCompra:         purchase.IDCompra,
+			IDProducto:       input.IDProducto,
+			CantidadProducto: 1,
+		}
+		if err := tx.Create(&item).Error; err != nil {
 			return err
 		}
 
-		loaded, err := compraByID(ctx, tx, id)
+		loaded, err := compraByID(ctx, tx, purchase.IDCompra)
 		if err != nil {
 			return err
 		}
@@ -83,14 +86,13 @@ func (r *Repository) UpdateCompra(ctx context.Context, id int, input models.Comp
 
 	var compra *models.Compra
 	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		result := tx.Exec(`
-			UPDATE compra
-			SET id_empleado = ?,
-			    id_cliente = ?,
-			    fecha_compra = ?,
-			    total_compra = ?
-			WHERE id_compra = ?
-		`, input.IDEmpleado, input.IDCliente, input.FechaCompra, input.TotalCompra, id)
+		updates := map[string]any{
+			"id_empleado":  input.IDEmpleado,
+			"id_cliente":   input.IDCliente,
+			"fecha_compra": input.FechaCompra,
+			"total_compra": input.TotalCompra,
+		}
+		result := tx.Model(&models.Compra{}).Where("id_compra = ?", id).Updates(updates)
 		if result.Error != nil {
 			return fmt.Errorf("transaction rollback after update error: %w", result.Error)
 		}
@@ -98,13 +100,16 @@ func (r *Repository) UpdateCompra(ctx context.Context, id int, input models.Comp
 			return ErrNotFound
 		}
 
-		if err := tx.Exec("DELETE FROM producto_compra WHERE id_compra = ?", id).Error; err != nil {
+		if err := tx.Delete(&models.ProductCompra{}, "id_compra = ?", id).Error; err != nil {
 			return fmt.Errorf("transaction rollback after detail delete error: %w", err)
 		}
-		if err := tx.Exec(`
-			INSERT INTO producto_compra (id_compra, id_producto, cantidad_producto)
-			VALUES (?, ?, 1)
-		`, id, input.IDProducto).Error; err != nil {
+
+		item := models.ProductCompra{
+			IDCompra:         id,
+			IDProducto:       input.IDProducto,
+			CantidadProducto: 1,
+		}
+		if err := tx.Create(&item).Error; err != nil {
 			return fmt.Errorf("transaction rollback after detail insert error: %w", err)
 		}
 
@@ -123,11 +128,11 @@ func (r *Repository) UpdateCompra(ctx context.Context, id int, input models.Comp
 
 func (r *Repository) DestroyCompra(ctx context.Context, id int) error {
 	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := tx.Exec("DELETE FROM producto_compra WHERE id_compra = ?", id).Error; err != nil {
+		if err := tx.Delete(&models.ProductCompra{}, "id_compra = ?", id).Error; err != nil {
 			return err
 		}
 
-		result := tx.Exec("DELETE FROM compra WHERE id_compra = ?", id)
+		result := tx.Delete(&models.Compra{}, "id_compra = ?", id)
 		if result.Error != nil {
 			return result.Error
 		}

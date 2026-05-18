@@ -120,7 +120,7 @@ func (r *Repository) PatchProduct(ctx context.Context, id int, input models.Prod
 
 func (r *Repository) DestroyProduct(ctx context.Context, id int) error {
 	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := tx.Exec("DELETE FROM producto_compra WHERE id_producto = ?", id).Error; err != nil {
+		if err := tx.Delete(&models.ProductCompra{}, "id_producto = ?", id).Error; err != nil {
 			return err
 		}
 
