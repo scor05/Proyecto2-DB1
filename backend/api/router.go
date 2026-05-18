@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"proyecto2/backend/api/routes"
-	database "proyecto2/backend/db"
+	database "proyecto2/backend/services"
 )
 
 func enableCORS(next http.Handler) http.Handler {

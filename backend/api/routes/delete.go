@@ -2,7 +2,8 @@ package routes
 
 import (
 	"net/http"
-	database "proyecto2/backend/db"
+
+	database "proyecto2/backend/services"
 )
 
 func DestroyProduct(manager *database.Manager) http.HandlerFunc {

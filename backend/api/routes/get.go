@@ -2,7 +2,8 @@ package routes
 
 import (
 	"net/http"
-	database "proyecto2/backend/db"
+
+	database "proyecto2/backend/services"
 )
 
 func IndexProducts(manager *database.Manager) http.HandlerFunc {

@@ -3,7 +3,8 @@ package routes
 import (
 	"encoding/json"
 	"net/http"
-	database "proyecto2/backend/db"
+
+	database "proyecto2/backend/services"
 )
 
 func UpdateProduct(manager *database.Manager) http.HandlerFunc {

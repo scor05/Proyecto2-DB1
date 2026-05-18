@@ -6,8 +6,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	database "proyecto2/backend/db"
 	"strconv"
+
+	database "proyecto2/backend/services"
 )
 
 func ProductIDFromRequest(w http.ResponseWriter, r *http.Request) (int, bool) {
