@@ -31,6 +31,6 @@ docker compose up --build
 Las credenciales obligatorias para la base de datos son:
 
 ```env
-DB_USER=proy2
+DB_USER=proy3
 DB_PASSWORD=secret
 ```

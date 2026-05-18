@@ -19,7 +19,7 @@ type Connection struct {
 func NewConnection() (*Connection, error) {
 	dsn := fmt.Sprintf(
 		"postgres://%s:%s@%s:%s/%s?sslmode=disable",
-		getenv("DB_USER", "proy2"),
+		getenv("DB_USER", "proy3"),
 		getenv("DB_PASSWORD", "secret"),
 		getenv("DB_HOST", "db"),
 		getenv("DB_PORT", "5432"),
