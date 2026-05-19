@@ -42,7 +42,15 @@ Todos los usuarios de prueba usan la contraseña `secret`.
 | Rol | Correo |
 | --- | --- |
 | cliente | `alejandro.cifuentes@email.com` |
-| empleado | `luis.herrera@pcmarket.com` |
+| empleado | `luis.herrera@pcfast.com` |
 | proveedor | `ventas@asusgt.com` |
-| gerente | `gerente@pcmarket.com` |
-| superadmin | `superadmin@pcmarket.com` |
+| gerente | `gerente@pcfast.com` |
+| superadmin | `superadmin@pcfast.com` |
+
+## Roles y permisos
+
+- `rol_cliente`: puede consultar el catálogo público, incluyendo categorías y productos.
+- `rol_empleado`: puede consultar categorías, proveedores, productos, clientes, empleados, compras y detalles de compra. También puede crear y editar clientes, compras y detalles de compra, además de actualizar el stock de productos durante operaciones de venta. No puede eliminar registros.
+- `rol_proveedor`: puede consultar categorías, productos y proveedores. Solo puede actualizar datos de contacto de proveedor: teléfono, correo y dirección.
+- `rol_gerente`: puede consultar información operativa, crear productos, categorías, proveedores, clientes y empleados, editar productos, categorías, proveedores y empleados, y eliminar registros. Es el único rol de negocio con permisos de eliminación.
+- `rol_superadmin`: puede consultar, crear y editar registros en todas las tablas del sistema. No tiene permisos de eliminación, ya que esa operación queda reservada para `rol_gerente`.

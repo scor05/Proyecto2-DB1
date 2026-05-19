@@ -33,7 +33,7 @@ export function LoginPage({ onLogin }) {
                     type="email"
                     value={correo}
                     onChange={(event) => setCorreo(event.target.value)}
-                    placeholder="usuario@pcmarket.com"
+                    placeholder="usuario@pcfast.com"
                     autoComplete="email"
                     required
                 />

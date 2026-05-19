@@ -64,31 +64,31 @@ INSERT INTO proveedor (nombre, telefono, correo, direccion) VALUES
     ('Dell Components', '+502 2301-1025', 'orders@dellcomponents.com', 'Zona 10, Ciudad de Guatemala');
 
 INSERT INTO empleado (nombre, estado, correo) VALUES
-    ('Luis Herrera', 'activo', 'luis.herrera@pcmarket.com'),
-    ('Andrea Salazar', 'activo', 'andrea.salazar@pcmarket.com'),
-    ('Carlos Mendez', 'activo', 'carlos.mendez@pcmarket.com'),
-    ('Sofia Rojas', 'activo', 'sofia.rojas@pcmarket.com'),
-    ('Diego Morales', 'activo', 'diego.morales@pcmarket.com'),
-    ('Valeria Castro', 'activo', 'valeria.castro@pcmarket.com'),
-    ('Pablo Ramirez', 'activo', 'pablo.ramirez@pcmarket.com'),
-    ('Gabriela Soto', 'activo', 'gabriela.soto@pcmarket.com'),
-    ('Ricardo Pineda', 'activo', 'ricardo.pineda@pcmarket.com'),
-    ('Maria Escobar', 'activo', 'maria.escobar@pcmarket.com'),
-    ('Jose Barrios', 'activo', 'jose.barrios@pcmarket.com'),
-    ('Camila Orellana', 'activo', 'camila.orellana@pcmarket.com'),
-    ('Fernando Lopez', 'activo', 'fernando.lopez@pcmarket.com'),
-    ('Daniela Arana', 'activo', 'daniela.arana@pcmarket.com'),
-    ('Esteban Leon', 'activo', 'esteban.leon@pcmarket.com'),
-    ('Patricia Molina', 'inactivo', 'patricia.molina@pcmarket.com'),
-    ('Javier Fuentes', 'inactivo', 'javier.fuentes@pcmarket.com'),
-    ('Monica Cabrera', 'activo', 'monica.cabrera@pcmarket.com'),
-    ('Oscar Cardona', 'activo', 'oscar.cardona@pcmarket.com'),
-    ('Natalia Solis', 'activo', 'natalia.solis@pcmarket.com'),
-    ('Marco Tulio Reyes', 'activo', 'marco.reyes@pcmarket.com'),
-    ('Paula Zamora', 'activo', 'paula.zamora@pcmarket.com'),
-    ('Kevin Aguirre', 'activo', 'kevin.aguirre@pcmarket.com'),
-    ('Lucia Villatoro', 'inactivo', 'lucia.villatoro@pcmarket.com'),
-    ('Hector Alvarado', 'activo', 'hector.alvarado@pcmarket.com');
+    ('Luis Herrera', 'activo', 'luis.herrera@pcfast.com'),
+    ('Andrea Salazar', 'activo', 'andrea.salazar@pcfast.com'),
+    ('Carlos Mendez', 'activo', 'carlos.mendez@pcfast.com'),
+    ('Sofia Rojas', 'activo', 'sofia.rojas@pcfast.com'),
+    ('Diego Morales', 'activo', 'diego.morales@pcfast.com'),
+    ('Valeria Castro', 'activo', 'valeria.castro@pcfast.com'),
+    ('Pablo Ramirez', 'activo', 'pablo.ramirez@pcfast.com'),
+    ('Gabriela Soto', 'activo', 'gabriela.soto@pcfast.com'),
+    ('Ricardo Pineda', 'activo', 'ricardo.pineda@pcfast.com'),
+    ('Maria Escobar', 'activo', 'maria.escobar@pcfast.com'),
+    ('Jose Barrios', 'activo', 'jose.barrios@pcfast.com'),
+    ('Camila Orellana', 'activo', 'camila.orellana@pcfast.com'),
+    ('Fernando Lopez', 'activo', 'fernando.lopez@pcfast.com'),
+    ('Daniela Arana', 'activo', 'daniela.arana@pcfast.com'),
+    ('Esteban Leon', 'activo', 'esteban.leon@pcfast.com'),
+    ('Patricia Molina', 'inactivo', 'patricia.molina@pcfast.com'),
+    ('Javier Fuentes', 'inactivo', 'javier.fuentes@pcfast.com'),
+    ('Monica Cabrera', 'activo', 'monica.cabrera@pcfast.com'),
+    ('Oscar Cardona', 'activo', 'oscar.cardona@pcfast.com'),
+    ('Natalia Solis', 'activo', 'natalia.solis@pcfast.com'),
+    ('Marco Tulio Reyes', 'activo', 'marco.reyes@pcfast.com'),
+    ('Paula Zamora', 'activo', 'paula.zamora@pcfast.com'),
+    ('Kevin Aguirre', 'activo', 'kevin.aguirre@pcfast.com'),
+    ('Lucia Villatoro', 'inactivo', 'lucia.villatoro@pcfast.com'),
+    ('Hector Alvarado', 'activo', 'hector.alvarado@pcfast.com');
 
 INSERT INTO cliente (nombre, telefono, correo) VALUES
     ('Alejandro Cifuentes', '+502 4100-0001', 'alejandro.cifuentes@email.com'),
@@ -118,10 +118,10 @@ INSERT INTO cliente (nombre, telefono, correo) VALUES
     ('Hugo Contreras', '+502 4100-0025', 'hugo.contreras@email.com');
 
 INSERT INTO gerente (nombre, correo, password) VALUES
-    ('Gerente General', 'gerente@pcmarket.com', 'secret');
+    ('Gerente General', 'gerente@pcfast.com', 'secret');
 
 INSERT INTO superadmin (nombre, correo, password) VALUES
-    ('Super Admin', 'superadmin@pcmarket.com', 'secret');
+    ('Super Admin', 'superadmin@pcfast.com', 'secret');
 
 INSERT INTO producto (id_categoria, id_proveedor, precio, stock, nombre, imagen, descripcion) VALUES
     (2, 6, 899.00, 18, 'AMD Ryzen 5 5500', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTVLM4n4Exhx1yA1aXJU58ATjQjABYjQshPjQ&s', 'Procesador de 6 nucleos y 12 hilos para equipos gaming de entrada y productividad general.'),
