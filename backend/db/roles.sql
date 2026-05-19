@@ -26,7 +26,7 @@ TO rol_cliente, rol_empleado, rol_proveedor, rol_gerente, rol_superadmin;
 GRANT USAGE ON SCHEMA public
 TO rol_cliente, rol_empleado, rol_proveedor, rol_gerente;
 
-GRANT USAGE, CREATE ON SCHEMA public TO rol_superadmin;
+GRANT LOGIN, USAGE, CREATE ON SCHEMA public TO rol_superadmin;
 
 /*
     rol_cliente:
@@ -61,7 +61,7 @@ GRANT UPDATE (telefono, correo, direccion) ON TABLE proveedor TO rol_proveedor;
     Usuario de administracion del negocio. Puede consultar toda la informacion
     operativa y ajustar precio/stock de productos, pero no administra el sistema.
 */
-GRANT SELECT ON TABLE categoria, proveedor, empleado, cliente, producto, compra, producto_compra
+GRANT SELECT ON TABLE categoria, proveedor, empleado, cliente, producto, compra, producto_compra, gerente
 TO rol_gerente;
 
 GRANT UPDATE (precio, stock) ON TABLE producto TO rol_gerente;

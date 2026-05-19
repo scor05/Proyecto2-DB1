@@ -7,24 +7,38 @@ import { LoginPage } from "./login/LoginPage.jsx"
 import { ProductsPage } from "./products/ProductsPage.jsx"
 import { ProveedoresPage } from "./proveedores/ProveedoresPage.jsx"
 import { TopBar } from "./topbar/TopBar.jsx"
+import { fetchSession, logoutUser } from "./api/client.js"
 import "./App.css"
 
-const savedEmployeeKey = "pcfast.employee"
-
 export function App() {
-  const [employee, setEmployee] = useState(() => {
-    const savedEmployee = localStorage.getItem(savedEmployeeKey)
-    return savedEmployee ? JSON.parse(savedEmployee) : null
-  })
+  const [user, setUser] = useState(null)
+  const [checkingSession, setCheckingSession] = useState(true)
   const [page, setPage] = useState("productos")
 
   useEffect(() => {
-    if (employee) {
-      localStorage.setItem(savedEmployeeKey, JSON.stringify(employee))
-    } else {
-      localStorage.removeItem(savedEmployeeKey)
+    let active = true
+
+    fetchSession()
+      .then((sessionUser) => {
+        if (active) {
+          setUser(sessionUser)
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setUser(null)
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setCheckingSession(false)
+        }
+      })
+
+    return () => {
+      active = false
     }
-  }, [employee])
+  }, [])
 
   const pages = useMemo(() => [
     { id: "productos", label: "Productos" },
@@ -35,22 +49,34 @@ export function App() {
     { id: "empleados", label: "Empleados" },
   ], [])
 
-  if (!employee) {
-    return <LoginPage onLogin={setEmployee} />
+  async function handleLogout() {
+    try {
+      await logoutUser()
+    } finally {
+      setUser(null)
+    }
+  }
+
+  if (checkingSession) {
+    return <main className="login-page"><p className="login-status">Verificando sesión...</p></main>
+  }
+
+  if (!user) {
+    return <LoginPage onLogin={setUser} />
   }
 
   return (
     <div className="app-shell">
       <TopBar
-        employee={employee}
+        employee={user}
         pages={pages}
         currentPage={page}
         onNavigate={setPage}
-        onLogout={() => setEmployee(null)}
+        onLogout={handleLogout}
       />
       <main className="app-content">
         {page === "productos" && <ProductsPage />}
-        {page === "compras" && <ComprasPage employee={employee} />}
+        {page === "compras" && <ComprasPage employee={user} />}
         {page === "proveedores" && <ProveedoresPage />}
         {page === "categorias" && <CategoriasPage />}
         {page === "clientes" && <ClientesPage />}

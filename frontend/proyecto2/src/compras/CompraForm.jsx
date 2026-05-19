@@ -6,8 +6,10 @@ function today() {
 }
 
 function initialForm(compra, employee, clients, products) {
+  const employeeID = employee?.id_empleado ?? (employee?.rol === "empleado" ? employee.id : "")
+
   return {
-    id_empleado: compra?.id_empleado ?? employee?.id_empleado ?? "",
+    id_empleado: compra?.id_empleado ?? employeeID,
     id_cliente: compra?.id_cliente ?? clients[0]?.id_cliente ?? "",
     fecha_compra: compra?.fecha_compra ?? today(),
     id_producto: compra?.id_producto ?? products[0]?.id_producto ?? "",

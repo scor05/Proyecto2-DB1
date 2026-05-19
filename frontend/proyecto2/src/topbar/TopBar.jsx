@@ -49,7 +49,7 @@ export function TopBar({ employee, pages, currentPage, onNavigate, onLogout }) {
         <h1>PCFast</h1>
       </div>
       <div className="topbar-section topbar-right">
-        <span>{employee.nombre}</span>
+        <span>{employee.nombre} · {employee.rol}</span>
         <button type="button" onClick={onLogout}>Cerrar Sesión</button>
       </div>
     </header>

@@ -9,6 +9,8 @@ import (
 func RegisterRoutes(mux *http.ServeMux, manager *database.Manager) {
 	mux.HandleFunc("GET /api/health", Health(manager))
 	mux.HandleFunc("POST /api/login", LoginEmployee(manager))
+	mux.HandleFunc("POST /api/logout", Logout(manager))
+	mux.HandleFunc("GET /api/session", CurrentSession(manager))
 	mux.HandleFunc("POST /api/productos", CreateProduct(manager))
 	mux.HandleFunc("GET /api/productos", IndexProducts(manager))
 	mux.HandleFunc("GET /api/productos/{id}", ShowProduct(manager))

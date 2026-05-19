@@ -42,3 +42,8 @@
   margin: 0;
   color: #f1c7c7;
 }
+
+.login-status {
+  margin: 0;
+  color: var(--content);
+}

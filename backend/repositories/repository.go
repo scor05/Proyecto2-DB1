@@ -7,8 +7,9 @@ import (
 )
 
 var (
-	ErrNotFound     = errors.New("record not found")
-	ErrInvalidInput = errors.New("invalid input")
+	ErrNotFound           = errors.New("record not found")
+	ErrInvalidInput       = errors.New("invalid input")
+	ErrInvalidCredentials = errors.New("invalid credentials")
 )
 
 type Repository struct {

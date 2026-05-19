@@ -14,21 +14,38 @@ CREATE TABLE proveedor (
     nombre VARCHAR(150) NOT NULL,
     telefono VARCHAR(20) NOT NULL,
     correo VARCHAR(250) NOT NULL,
-    direccion VARCHAR(250) NOT NULL
+    direccion VARCHAR(250) NOT NULL,
+    password TEXT NOT NULL DEFAULT 'secret'
 );
 
 CREATE TABLE empleado (
     id_empleado INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     nombre VARCHAR(150) NOT NULL,
     estado VARCHAR(8) NOT NULL CHECK (estado IN ('activo', 'inactivo')),
-    correo VARCHAR(250) NOT NULL
+    correo VARCHAR(250) NOT NULL,
+    password TEXT NOT NULL DEFAULT 'secret'
 );
 
 CREATE TABLE cliente (
     id_cliente INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     nombre VARCHAR(150) NOT NULL,
     telefono VARCHAR(20) NOT NULL,
-    correo VARCHAR(254) NOT NULL
+    correo VARCHAR(254) NOT NULL,
+    password TEXT NOT NULL DEFAULT 'secret'
+);
+
+CREATE TABLE gerente (
+    id_gerente INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    nombre VARCHAR(150) NOT NULL,
+    correo VARCHAR(250) NOT NULL,
+    password TEXT NOT NULL
+);
+
+CREATE TABLE superadmin (
+    id_superadmin INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    nombre VARCHAR(150) NOT NULL,
+    correo VARCHAR(250) NOT NULL,
+    password TEXT NOT NULL
 );
 
 CREATE TABLE producto (

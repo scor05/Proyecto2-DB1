@@ -2,6 +2,7 @@ const apiUrl = import.meta.env.VITE_API_URL ?? "http://localhost:8080"
 
 export async function apiRequest(path, options = {}) {
   const response = await fetch(`${apiUrl}${path}`, {
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
       ...(options.headers ?? {}),
@@ -21,9 +22,15 @@ export async function apiRequest(path, options = {}) {
   return payload
 }
 
-export const loginEmployee = (correo) => apiRequest("/api/login", {
+export const loginUser = (correo, password) => apiRequest("/api/login", {
   method: "POST",
-  body: JSON.stringify({ correo }),
+  body: JSON.stringify({ correo, password }),
+})
+
+export const fetchSession = () => apiRequest("/api/session")
+
+export const logoutUser = () => apiRequest("/api/logout", {
+  method: "POST",
 })
 
 export const fetchProducts = () => apiRequest("/api/productos")

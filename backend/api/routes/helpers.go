@@ -69,6 +69,8 @@ func WriteDBError(w http.ResponseWriter, err error) {
 	switch {
 	case errors.Is(err, database.ErrNotFound):
 		WriteError(w, http.StatusNotFound, err)
+	case errors.Is(err, database.ErrInvalidCredentials):
+		WriteError(w, http.StatusUnauthorized, err)
 	case errors.Is(err, database.ErrInvalidInput):
 		WriteError(w, http.StatusBadRequest, err)
 	default:

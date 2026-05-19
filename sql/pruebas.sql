@@ -117,6 +117,12 @@ INSERT INTO cliente (nombre, telefono, correo) VALUES
     ('Claudia Franco', '+502 4100-0024', 'claudia.franco@email.com'),
     ('Hugo Contreras', '+502 4100-0025', 'hugo.contreras@email.com');
 
+INSERT INTO gerente (nombre, correo, password) VALUES
+    ('Gerente General', 'gerente@pcmarket.com', 'secret');
+
+INSERT INTO superadmin (nombre, correo, password) VALUES
+    ('Super Admin', 'superadmin@pcmarket.com', 'secret');
+
 INSERT INTO producto (id_categoria, id_proveedor, precio, stock, nombre, imagen, descripcion) VALUES
     (2, 6, 899.00, 18, 'AMD Ryzen 5 5500', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTVLM4n4Exhx1yA1aXJU58ATjQjABYjQshPjQ&s', 'Procesador de 6 nucleos y 12 hilos para equipos gaming de entrada y productividad general.'),
     (2, 6, 3499.00, 10, 'AMD Ryzen 7 7800X3D', 'https://m.media-amazon.com/images/I/51HqC0rU9HL._AC_SL1500_.jpg', 'Procesador orientado a gaming de alto rendimiento con 3D V-Cache y gran eficiencia.'),

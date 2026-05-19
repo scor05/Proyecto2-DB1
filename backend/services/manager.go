@@ -9,8 +9,9 @@ import (
 )
 
 var (
-	ErrNotFound     = repositories.ErrNotFound
-	ErrInvalidInput = repositories.ErrInvalidInput
+	ErrNotFound           = repositories.ErrNotFound
+	ErrInvalidInput       = repositories.ErrInvalidInput
+	ErrInvalidCredentials = repositories.ErrInvalidCredentials
 )
 
 type Product = models.Product
@@ -26,10 +27,12 @@ type Client = models.Client
 type ClientWrite = models.ClientWrite
 type Compra = models.Compra
 type CompraWrite = models.CompraWrite
+type AuthUser = models.AuthUser
 
 type Manager struct {
-	conn *db.Connection
-	repo *repositories.Repository
+	conn     *db.Connection
+	repo     *repositories.Repository
+	sessions *SessionStore
 }
 
 func NewManager() (*Manager, error) {
@@ -38,8 +41,9 @@ func NewManager() (*Manager, error) {
 		return nil, err
 	}
 	return &Manager{
-		conn: conn,
-		repo: repositories.New(conn.DB),
+		conn:     conn,
+		repo:     repositories.New(conn.DB),
+		sessions: NewSessionStore(),
 	}, nil
 }
 
@@ -77,6 +81,22 @@ func (m *Manager) Destroy(ctx context.Context, id int) error {
 
 func (m *Manager) LoginEmployee(ctx context.Context, correo string) (*models.Employee, error) {
 	return m.repo.LoginEmployee(ctx, correo)
+}
+
+func (m *Manager) Authenticate(ctx context.Context, correo string, password string) (*models.AuthUser, error) {
+	return m.repo.Authenticate(ctx, correo, password)
+}
+
+func (m *Manager) CreateSession(user models.AuthUser) (string, error) {
+	return m.sessions.Create(user)
+}
+
+func (m *Manager) SessionUser(token string) (*models.AuthUser, bool) {
+	return m.sessions.Get(token)
+}
+
+func (m *Manager) DeleteSession(token string) {
+	m.sessions.Delete(token)
 }
 
 func (m *Manager) Categories(ctx context.Context) ([]models.Category, error) {

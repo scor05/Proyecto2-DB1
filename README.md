@@ -34,3 +34,15 @@ Las credenciales obligatorias para la base de datos son:
 DB_USER=proy3
 DB_PASSWORD=secret
 ```
+
+## Usuarios de prueba
+
+Todos los usuarios de prueba usan la contraseña `secret`.
+
+| Rol | Correo |
+| --- | --- |
+| cliente | `alejandro.cifuentes@email.com` |
+| empleado | `luis.herrera@pcmarket.com` |
+| proveedor | `ventas@asusgt.com` |
+| gerente | `gerente@pcmarket.com` |
+| superadmin | `superadmin@pcmarket.com` |
