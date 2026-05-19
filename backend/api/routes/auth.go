@@ -51,16 +51,8 @@ func Logout(manager *database.Manager) http.HandlerFunc {
 
 func CurrentSession(manager *database.Manager) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		cookie, err := r.Cookie(database.SessionCookieName)
-		if err != nil {
-			WriteError(w, http.StatusUnauthorized, database.ErrInvalidCredentials)
-			return
-		}
-
-		user, ok := manager.SessionUser(cookie.Value)
+		user, ok := SessionUserFromRequest(manager, w, r)
 		if !ok {
-			http.SetCookie(w, expiredSessionCookie())
-			WriteError(w, http.StatusUnauthorized, database.ErrInvalidCredentials)
 			return
 		}
 

@@ -4,27 +4,33 @@ function isImageUrl(value) {
   return typeof value === "string" && /^(https?:\/\/|data:image\/)/i.test(value)
 }
 
-export function ProductCard({ product, onUpdate, onDelete }) {
+export function ProductCard({ product, canEdit, canDelete, onUpdate, onDelete }) {
   return (
     <article className="product-card">
-      <div className="product-card-actions">
-        <button
-          className="product-action-button"
-          type="button"
-          aria-label={`Actualizar ${product.nombre}`}
-          onClick={() => onUpdate(product)}
-        >
-          ✎
-        </button>
-        <button
-          className="product-action-button product-delete-button"
-          type="button"
-          aria-label={`Eliminar ${product.nombre}`}
-          onClick={() => onDelete(product)}
-        >
-          🗑
-        </button>
-      </div>
+      {(canEdit || canDelete) && (
+        <div className="product-card-actions">
+          {canEdit && (
+            <button
+              className="product-action-button"
+              type="button"
+              aria-label={`Actualizar ${product.nombre}`}
+              onClick={() => onUpdate(product)}
+            >
+              ✎
+            </button>
+          )}
+          {canDelete && (
+            <button
+              className="product-action-button product-delete-button"
+              type="button"
+              aria-label={`Eliminar ${product.nombre}`}
+              onClick={() => onDelete(product)}
+            >
+              🗑
+            </button>
+          )}
+        </div>
+      )}
 
       <div className="product-image-slot">
         {isImageUrl(product.imagen) ? (

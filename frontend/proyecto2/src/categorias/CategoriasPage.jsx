@@ -6,16 +6,19 @@ import {
   updateCategory,
 } from "../api/client.js"
 import { ProductModal } from "../products/ProductModal.jsx"
+import { canDeleteCategories, canManageCategories } from "../auth/permissions.js"
 import { CategoriaForm } from "./CategoriaForm.jsx"
 import "./CategoriasPage.css"
 
-export function CategoriasPage() {
+export function CategoriasPage({ user }) {
   const [categories, setCategories] = useState([])
   const [search, setSearch] = useState("")
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
   const [modal, setModal] = useState(null)
+  const canManage = canManageCategories(user?.rol)
+  const canDelete = canDeleteCategories(user?.rol)
 
   useEffect(() => {
     let active = true
@@ -108,9 +111,11 @@ export function CategoriasPage() {
           onChange={(event) => setSearch(event.target.value)}
           placeholder="Buscar categoría"
         />
-        <button className="entity-add-button" type="button" onClick={() => setModal({ type: "add" })}>
-          +
-        </button>
+        {canManage && (
+          <button className="entity-add-button" type="button" onClick={() => setModal({ type: "add" })}>
+            +
+          </button>
+        )}
       </div>
 
       {error && <p className="page-error">{error}</p>}
@@ -129,7 +134,7 @@ export function CategoriasPage() {
               </thead>
               <tbody>
                 {filteredCategories.map((category) => (
-                  <tr key={category.id_categoria} onClick={() => setModal({ type: "edit", category })}>
+                  <tr key={category.id_categoria} onClick={() => canManage && setModal({ type: "edit", category })}>
                     <td>{category.id_categoria}</td>
                     <td>{category.nombre}</td>
                   </tr>
@@ -142,7 +147,7 @@ export function CategoriasPage() {
         )
       )}
 
-      {modal?.type === "add" && (
+      {canManage && modal?.type === "add" && (
         <ProductModal title="Agregar categoría" onClose={() => setModal(null)}>
           <CategoriaForm
             onCancel={() => setModal(null)}
@@ -152,19 +157,19 @@ export function CategoriasPage() {
         </ProductModal>
       )}
 
-      {modal?.type === "edit" && (
+      {canManage && modal?.type === "edit" && (
         <ProductModal title={`Actualizar categoría #${modal.category.id_categoria}`} onClose={() => setModal(null)}>
           <CategoriaForm
             category={modal.category}
             onCancel={() => setModal(null)}
             onSubmit={(values) => handleUpdate(modal.category, values)}
-            onDelete={() => setModal({ type: "delete", category: modal.category })}
+            onDelete={canDelete ? () => setModal({ type: "delete", category: modal.category }) : undefined}
             submitLabel="Guardar cambios"
           />
         </ProductModal>
       )}
 
-      {modal?.type === "delete" && (
+      {canDelete && modal?.type === "delete" && (
         <ProductModal title="Eliminar categoría" onClose={() => setModal(null)}>
           <p className="delete-message">
             ¿Estás seguro que deseas eliminar la categoría "{modal.category.nombre}"?

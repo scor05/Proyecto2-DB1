@@ -9,6 +9,7 @@ import {
   updateCompra,
 } from "../api/client.js"
 import { ProductModal } from "../products/ProductModal.jsx"
+import { canDeletePurchases, canEditPurchases } from "../auth/permissions.js"
 import { CompraForm } from "./CompraForm.jsx"
 import "./ComprasPage.css"
 
@@ -22,6 +23,8 @@ export function ComprasPage({ employee }) {
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
   const [modal, setModal] = useState(null)
+  const canEdit = canEditPurchases(employee?.rol)
+  const canDelete = canDeletePurchases(employee?.rol)
 
   useEffect(() => {
     let active = true
@@ -160,9 +163,11 @@ export function ComprasPage({ employee }) {
           onChange={(event) => setSearch(event.target.value)}
           placeholder="Buscar compra"
         />
-        <button className="add-compra-button" type="button" onClick={() => setModal({ type: "add" })}>
-          +
-        </button>
+        {canEdit && (
+          <button className="add-compra-button" type="button" onClick={() => setModal({ type: "add" })}>
+            +
+          </button>
+        )}
         <button className="csv-button" type="button" onClick={exportCSV}>
           Exportar a CSV
         </button>
@@ -188,7 +193,16 @@ export function ComprasPage({ employee }) {
               </thead>
               <tbody>
                 {filteredCompras.map((compra) => (
-                  <tr key={compra.id_compra} onClick={() => setModal({ type: "edit", compra })}>
+                  <tr
+                    key={compra.id_compra}
+                    onClick={() => {
+                      if (canEdit) {
+                        setModal({ type: "edit", compra })
+                      } else if (canDelete) {
+                        setModal({ type: "delete", compra })
+                      }
+                    }}
+                  >
                     <td>{compra.id_compra}</td>
                     <td>{compra.nombre_empleado}</td>
                     <td>{compra.nombre_cliente}</td>
@@ -205,7 +219,7 @@ export function ComprasPage({ employee }) {
         )
       )}
 
-      {modal?.type === "add" && (
+      {canEdit && modal?.type === "add" && (
         <ProductModal title="Agregar compra" onClose={() => setModal(null)}>
           <CompraForm
             employee={employee}
@@ -219,7 +233,7 @@ export function ComprasPage({ employee }) {
         </ProductModal>
       )}
 
-      {modal?.type === "edit" && (
+      {canEdit && modal?.type === "edit" && (
         <ProductModal title={`Actualizar compra #${modal.compra.id_compra}`} onClose={() => setModal(null)}>
           <CompraForm
             compra={modal.compra}
@@ -229,13 +243,13 @@ export function ComprasPage({ employee }) {
             products={products}
             onCancel={() => setModal(null)}
             onSubmit={(values) => handleUpdate(modal.compra, values)}
-            onDelete={() => setModal({ type: "delete", compra: modal.compra })}
+            onDelete={canDelete ? () => setModal({ type: "delete", compra: modal.compra }) : undefined}
             submitLabel="Guardar cambios"
           />
         </ProductModal>
       )}
 
-      {modal?.type === "delete" && (
+      {canDelete && modal?.type === "delete" && (
         <ProductModal title="Eliminar compra" onClose={() => setModal(null)}>
           <p className="delete-message">
             ¿Estás seguro que deseas eliminar la compra #{modal.compra.id_compra}?

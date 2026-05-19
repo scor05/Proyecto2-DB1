@@ -44,11 +44,11 @@ textarea {
 button {
   border: none;
   cursor: pointer;
-  transition: transform 160ms ease, background-color 160ms ease, color 160ms ease;
+  transition: transform 0.25s ease-out, background-color 160ms ease, color 160ms ease;
 }
 
-button:hover {
-  transform: translateY(-5%);
+button:active {
+  transform: scale(0.95);
 }
 
 button:disabled {
@@ -56,7 +56,7 @@ button:disabled {
   opacity: 0.6;
 }
 
-button:disabled:hover {
+button:disabled:active {
   transform: none;
 }
 

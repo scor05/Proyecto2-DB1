@@ -6,16 +6,19 @@ import {
   updateEmployee,
 } from "../api/client.js"
 import { ProductModal } from "../products/ProductModal.jsx"
+import { canDeleteEmployees, canManageEmployees } from "../auth/permissions.js"
 import "../categorias/CategoriasPage.css"
 import { EmpleadoForm } from "./EmpleadoForm.jsx"
 
-export function EmpleadosPage() {
+export function EmpleadosPage({ user }) {
   const [employees, setEmployees] = useState([])
   const [search, setSearch] = useState("")
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
   const [modal, setModal] = useState(null)
+  const canManage = canManageEmployees(user?.rol)
+  const canDelete = canDeleteEmployees(user?.rol)
 
   useEffect(() => {
     let active = true
@@ -114,9 +117,11 @@ export function EmpleadosPage() {
           onChange={(event) => setSearch(event.target.value)}
           placeholder="Buscar empleado"
         />
-        <button className="entity-add-button" type="button" onClick={() => setModal({ type: "add" })}>
-          +
-        </button>
+        {canManage && (
+          <button className="entity-add-button" type="button" onClick={() => setModal({ type: "add" })}>
+            +
+          </button>
+        )}
       </div>
 
       {error && <p className="page-error">{error}</p>}
@@ -137,7 +142,7 @@ export function EmpleadosPage() {
               </thead>
               <tbody>
                 {filteredEmployees.map((employee) => (
-                  <tr key={employee.id_empleado} onClick={() => setModal({ type: "edit", employee })}>
+                  <tr key={employee.id_empleado} onClick={() => canManage && setModal({ type: "edit", employee })}>
                     <td>{employee.id_empleado}</td>
                     <td>{employee.nombre}</td>
                     <td>{employee.estado}</td>
@@ -152,25 +157,25 @@ export function EmpleadosPage() {
         )
       )}
 
-      {modal?.type === "add" && (
+      {canManage && modal?.type === "add" && (
         <ProductModal title="Agregar empleado" onClose={() => setModal(null)}>
           <EmpleadoForm onCancel={() => setModal(null)} onSubmit={handleCreate} submitLabel="Agregar empleado" />
         </ProductModal>
       )}
 
-      {modal?.type === "edit" && (
+      {canManage && modal?.type === "edit" && (
         <ProductModal title={`Actualizar empleado #${modal.employee.id_empleado}`} onClose={() => setModal(null)}>
           <EmpleadoForm
             employee={modal.employee}
             onCancel={() => setModal(null)}
             onSubmit={(values) => handleUpdate(modal.employee, values)}
-            onDelete={() => setModal({ type: "delete", employee: modal.employee })}
+            onDelete={canDelete ? () => setModal({ type: "delete", employee: modal.employee }) : undefined}
             submitLabel="Guardar cambios"
           />
         </ProductModal>
       )}
 
-      {modal?.type === "delete" && (
+      {canDelete && modal?.type === "delete" && (
         <ProductModal title="Eliminar empleado" onClose={() => setModal(null)}>
           <p className="delete-message">
             ¿Estás seguro que deseas eliminar el empleado "{modal.employee.nombre}"?

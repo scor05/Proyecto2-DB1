@@ -10,9 +10,10 @@ import {
 import { ProductCard } from "./ProductCard.jsx"
 import { ProductForm } from "./ProductForm.jsx"
 import { ProductModal } from "./ProductModal.jsx"
+import { canDeleteProducts, canManageProducts } from "../auth/permissions.js"
 import "./ProductsPage.css"
 
-export function ProductsPage() {
+export function ProductsPage({ user }) {
   const [products, setProducts] = useState([])
   const [categories, setCategories] = useState([])
   const [providers, setProviders] = useState([])
@@ -22,6 +23,8 @@ export function ProductsPage() {
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
   const [modal, setModal] = useState(null)
+  const canManage = canManageProducts(user?.rol)
+  const canDelete = canDeleteProducts(user?.rol)
 
   useEffect(() => {
     let active = true
@@ -29,7 +32,7 @@ export function ProductsPage() {
     Promise.all([
       fetchProducts(),
       fetchCategories(),
-      fetchProviders(),
+      canManage ? fetchProviders() : Promise.resolve([]),
     ])
       .then(([productsData, categoriesData, providersData]) => {
         if (!active) {
@@ -53,7 +56,7 @@ export function ProductsPage() {
     return () => {
       active = false
     }
-  }, [])
+  }, [canManage])
 
   const filteredProducts = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase()
@@ -127,9 +130,11 @@ export function ProductsPage() {
           onChange={(event) => setSearch(event.target.value)}
           placeholder="Buscar producto"
         />
-        <button className="add-product-button" type="button" onClick={() => setModal({ type: "add" })}>
-          +
-        </button>
+        {canManage && (
+          <button className="add-product-button" type="button" onClick={() => setModal({ type: "add" })}>
+            +
+          </button>
+        )}
         <button className="filter-button" type="button" onClick={() => setModal({ type: "filter" })} aria-label="Filtrar por categoría">
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M4 6h16l-6 7v5l-4 2v-7L4 6z" />
@@ -154,6 +159,8 @@ export function ProductsPage() {
               <ProductCard
                 key={product.id_producto}
                 product={product}
+                canEdit={canManage}
+                canDelete={canDelete}
                 onUpdate={(selectedProduct) => setModal({ type: "update", product: selectedProduct })}
                 onDelete={(selectedProduct) => setModal({ type: "delete", product: selectedProduct })}
               />
@@ -164,7 +171,7 @@ export function ProductsPage() {
         )
       )}
 
-      {modal?.type === "add" && (
+      {canManage && modal?.type === "add" && (
         <ProductModal title="Agregar producto" onClose={() => setModal(null)}>
           <ProductForm
             categories={categories}
@@ -202,7 +209,7 @@ export function ProductsPage() {
         </ProductModal>
       )}
 
-      {modal?.type === "update" && (
+      {canManage && modal?.type === "update" && (
         <ProductModal title={`Actualizar ${modal.product.nombre}`} onClose={() => setModal(null)}>
           <ProductForm
             product={modal.product}
@@ -215,7 +222,7 @@ export function ProductsPage() {
         </ProductModal>
       )}
 
-      {modal?.type === "delete" && (
+      {canDelete && modal?.type === "delete" && (
         <ProductModal title="Eliminar producto" onClose={() => setModal(null)}>
           <p className="delete-message">
             ¿Estás seguro que deseas eliminar {modal.product.nombre}?

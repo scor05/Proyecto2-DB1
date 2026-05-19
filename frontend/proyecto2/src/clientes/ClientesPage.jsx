@@ -6,16 +6,20 @@ import {
   updateClient,
 } from "../api/client.js"
 import { ProductModal } from "../products/ProductModal.jsx"
+import { canCreateClients, canDeleteClients, canEditClients } from "../auth/permissions.js"
 import "../categorias/CategoriasPage.css"
 import { ClienteForm } from "./ClienteForm.jsx"
 
-export function ClientesPage() {
+export function ClientesPage({ user }) {
   const [clients, setClients] = useState([])
   const [search, setSearch] = useState("")
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
   const [modal, setModal] = useState(null)
+  const canCreate = canCreateClients(user?.rol)
+  const canEdit = canEditClients(user?.rol)
+  const canDelete = canDeleteClients(user?.rol)
 
   useEffect(() => {
     let active = true
@@ -114,9 +118,11 @@ export function ClientesPage() {
           onChange={(event) => setSearch(event.target.value)}
           placeholder="Buscar cliente"
         />
-        <button className="entity-add-button" type="button" onClick={() => setModal({ type: "add" })}>
-          +
-        </button>
+        {canCreate && (
+          <button className="entity-add-button" type="button" onClick={() => setModal({ type: "add" })}>
+            +
+          </button>
+        )}
       </div>
 
       {error && <p className="page-error">{error}</p>}
@@ -137,7 +143,16 @@ export function ClientesPage() {
               </thead>
               <tbody>
                 {filteredClients.map((client) => (
-                  <tr key={client.id_cliente} onClick={() => setModal({ type: "edit", client })}>
+                  <tr
+                    key={client.id_cliente}
+                    onClick={() => {
+                      if (canEdit) {
+                        setModal({ type: "edit", client })
+                      } else if (canDelete) {
+                        setModal({ type: "delete", client })
+                      }
+                    }}
+                  >
                     <td>{client.id_cliente}</td>
                     <td>{client.nombre}</td>
                     <td>{client.telefono}</td>
@@ -152,25 +167,25 @@ export function ClientesPage() {
         )
       )}
 
-      {modal?.type === "add" && (
+      {canCreate && modal?.type === "add" && (
         <ProductModal title="Agregar cliente" onClose={() => setModal(null)}>
           <ClienteForm onCancel={() => setModal(null)} onSubmit={handleCreate} submitLabel="Agregar cliente" />
         </ProductModal>
       )}
 
-      {modal?.type === "edit" && (
+      {canEdit && modal?.type === "edit" && (
         <ProductModal title={`Actualizar cliente #${modal.client.id_cliente}`} onClose={() => setModal(null)}>
           <ClienteForm
             client={modal.client}
             onCancel={() => setModal(null)}
             onSubmit={(values) => handleUpdate(modal.client, values)}
-            onDelete={() => setModal({ type: "delete", client: modal.client })}
+            onDelete={canDelete ? () => setModal({ type: "delete", client: modal.client }) : undefined}
             submitLabel="Guardar cambios"
           />
         </ProductModal>
       )}
 
-      {modal?.type === "delete" && (
+      {canDelete && modal?.type === "delete" && (
         <ProductModal title="Eliminar cliente" onClose={() => setModal(null)}>
           <p className="delete-message">
             ¿Estás seguro que deseas eliminar el cliente "{modal.client.nombre}"?

@@ -8,6 +8,7 @@ import { ProductsPage } from "./products/ProductsPage.jsx"
 import { ProveedoresPage } from "./proveedores/ProveedoresPage.jsx"
 import { TopBar } from "./topbar/TopBar.jsx"
 import { fetchSession, logoutUser } from "./api/client.js"
+import { canViewPage, visiblePagesForRole } from "./auth/permissions.js"
 import "./App.css"
 
 export function App() {
@@ -49,6 +50,14 @@ export function App() {
     { id: "empleados", label: "Empleados" },
   ], [])
 
+  const visiblePages = useMemo(() => visiblePagesForRole(user?.rol, pages), [pages, user?.rol])
+
+  useEffect(() => {
+    if (user && !canViewPage(user.rol, page)) {
+      setPage(visiblePages[0]?.id ?? "productos")
+    }
+  }, [page, user, visiblePages])
+
   async function handleLogout() {
     try {
       await logoutUser()
@@ -69,18 +78,18 @@ export function App() {
     <div className="app-shell">
       <TopBar
         employee={user}
-        pages={pages}
+        pages={visiblePages}
         currentPage={page}
         onNavigate={setPage}
         onLogout={handleLogout}
       />
       <main className="app-content">
-        {page === "productos" && <ProductsPage />}
+        {page === "productos" && <ProductsPage user={user} />}
         {page === "compras" && <ComprasPage employee={user} />}
-        {page === "proveedores" && <ProveedoresPage />}
-        {page === "categorias" && <CategoriasPage />}
-        {page === "clientes" && <ClientesPage />}
-        {page === "empleados" && <EmpleadosPage />}
+        {page === "proveedores" && <ProveedoresPage user={user} />}
+        {page === "categorias" && <CategoriasPage user={user} />}
+        {page === "clientes" && <ClientesPage user={user} />}
+        {page === "empleados" && <EmpleadosPage user={user} />}
       </main>
     </div>
   )

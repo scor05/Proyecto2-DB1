@@ -6,16 +6,19 @@ import {
   updateProvider,
 } from "../api/client.js"
 import { ProductModal } from "../products/ProductModal.jsx"
+import { canDeleteProviders, canManageProviders } from "../auth/permissions.js"
 import { ProveedorForm } from "./ProveedorForm.jsx"
 import "../categorias/CategoriasPage.css"
 
-export function ProveedoresPage() {
+export function ProveedoresPage({ user }) {
   const [providers, setProviders] = useState([])
   const [search, setSearch] = useState("")
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
   const [modal, setModal] = useState(null)
+  const canManage = canManageProviders(user?.rol)
+  const canDelete = canDeleteProviders(user?.rol)
 
   useEffect(() => {
     let active = true
@@ -115,9 +118,11 @@ export function ProveedoresPage() {
           onChange={(event) => setSearch(event.target.value)}
           placeholder="Buscar proveedor"
         />
-        <button className="entity-add-button" type="button" onClick={() => setModal({ type: "add" })}>
-          +
-        </button>
+        {canManage && (
+          <button className="entity-add-button" type="button" onClick={() => setModal({ type: "add" })}>
+            +
+          </button>
+        )}
       </div>
 
       {error && <p className="page-error">{error}</p>}
@@ -139,7 +144,7 @@ export function ProveedoresPage() {
               </thead>
               <tbody>
                 {filteredProviders.map((provider) => (
-                  <tr key={provider.id_proveedor} onClick={() => setModal({ type: "edit", provider })}>
+                  <tr key={provider.id_proveedor} onClick={() => canManage && setModal({ type: "edit", provider })}>
                     <td>{provider.id_proveedor}</td>
                     <td>{provider.nombre}</td>
                     <td>{provider.telefono}</td>
@@ -155,7 +160,7 @@ export function ProveedoresPage() {
         )
       )}
 
-      {modal?.type === "add" && (
+      {canManage && modal?.type === "add" && (
         <ProductModal title="Agregar proveedor" onClose={() => setModal(null)}>
           <ProveedorForm
             onCancel={() => setModal(null)}
@@ -165,19 +170,19 @@ export function ProveedoresPage() {
         </ProductModal>
       )}
 
-      {modal?.type === "edit" && (
+      {canManage && modal?.type === "edit" && (
         <ProductModal title={`Actualizar proveedor #${modal.provider.id_proveedor}`} onClose={() => setModal(null)}>
           <ProveedorForm
             provider={modal.provider}
             onCancel={() => setModal(null)}
             onSubmit={(values) => handleUpdate(modal.provider, values)}
-            onDelete={() => setModal({ type: "delete", provider: modal.provider })}
+            onDelete={canDelete ? () => setModal({ type: "delete", provider: modal.provider }) : undefined}
             submitLabel="Guardar cambios"
           />
         </ProductModal>
       )}
 
-      {modal?.type === "delete" && (
+      {canDelete && modal?.type === "delete" && (
         <ProductModal title="Eliminar proveedor" onClose={() => setModal(null)}>
           <p className="delete-message">
             ¿Estás seguro que deseas eliminar el proveedor "{modal.provider.nombre}"?
