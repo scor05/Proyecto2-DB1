@@ -81,11 +81,11 @@ CREATE TABLE producto_compra (
 );
 
 /*
-    Casi que es obligatorio poner un índice en categoría para un sistema como este, pues las consultas del catalogo para filtrar por productos (como buscar solo GPUs, CPUs o demás) es algo muy frecuente y casi la funcionalidad principal del proyecto.
+    Índice para filtrar productos por categoría.
 */ 
 CREATE INDEX idx_producto_id_categoria ON producto (id_categoria);
 
 /*
-    Principalmente este índice está para los gerentes y empleados de la tienda, para hacer más eficiente la generación de reportes y busquedas/filtros de compras por fecha, lo cual es algo que también se hace bastante frecentemente en casi cualquier sistema.
+    Índice para buscar compras por fecha.
 */
 CREATE INDEX idx_compra_fecha_compra ON compra (fecha_compra);

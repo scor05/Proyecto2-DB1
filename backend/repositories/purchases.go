@@ -2,7 +2,6 @@ package repositories
 
 import (
 	"context"
-	"fmt"
 
 	"gorm.io/gorm"
 	"proyecto2/backend/models"
@@ -45,38 +44,25 @@ func (r *Repository) CreateCompra(ctx context.Context, input models.CompraWrite)
 		return nil, err
 	}
 
-	var compra *models.Compra
-	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		purchase := models.Compra{
-			IDEmpleado:  input.IDEmpleado,
-			IDCliente:   input.IDCliente,
-			FechaCompra: input.FechaCompra,
-			TotalCompra: input.TotalCompra,
-		}
-		if err := tx.Create(&purchase).Error; err != nil {
-			return err
-		}
-
-		item := models.ProductCompra{
-			IDCompra:         purchase.IDCompra,
-			IDProducto:       input.IDProducto,
-			CantidadProducto: 1,
-		}
-		if err := tx.Create(&item).Error; err != nil {
-			return err
-		}
-
-		loaded, err := compraByID(ctx, tx, purchase.IDCompra)
-		if err != nil {
-			return err
-		}
-		compra = loaded
-		return nil
-	})
+	id, err := r.nextCompraID(ctx)
 	if err != nil {
 		return nil, err
 	}
-	return compra, nil
+
+	err = r.db.WithContext(ctx).Exec(
+		"CALL sp_create_compra(?, ?, ?, ?, ?, ?, ?)",
+		id,
+		input.IDEmpleado,
+		input.IDCliente,
+		input.FechaCompra,
+		input.TotalCompra,
+		input.IDProducto,
+		1,
+	).Error
+	if err != nil {
+		return nil, err
+	}
+	return compraByID(ctx, r.db, id)
 }
 
 func (r *Repository) UpdateCompra(ctx context.Context, id int, input models.CompraWrite) (*models.Compra, error) {
@@ -84,46 +70,20 @@ func (r *Repository) UpdateCompra(ctx context.Context, id int, input models.Comp
 		return nil, err
 	}
 
-	var compra *models.Compra
-	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		updates := map[string]any{
-			"id_empleado":  input.IDEmpleado,
-			"id_cliente":   input.IDCliente,
-			"fecha_compra": input.FechaCompra,
-			"total_compra": input.TotalCompra,
-		}
-		result := tx.Model(&models.Compra{}).Where("id_compra = ?", id).Updates(updates)
-		if result.Error != nil {
-			return fmt.Errorf("transaction rollback after update error: %w", result.Error)
-		}
-		if result.RowsAffected == 0 {
-			return ErrNotFound
-		}
-
-		if err := tx.Delete(&models.ProductCompra{}, "id_compra = ?", id).Error; err != nil {
-			return fmt.Errorf("transaction rollback after detail delete error: %w", err)
-		}
-
-		item := models.ProductCompra{
-			IDCompra:         id,
-			IDProducto:       input.IDProducto,
-			CantidadProducto: 1,
-		}
-		if err := tx.Create(&item).Error; err != nil {
-			return fmt.Errorf("transaction rollback after detail insert error: %w", err)
-		}
-
-		loaded, err := compraByID(ctx, tx, id)
-		if err != nil {
-			return fmt.Errorf("transaction rollback after reload error: %w", err)
-		}
-		compra = loaded
-		return nil
-	})
+	err := r.db.WithContext(ctx).Exec(
+		"CALL sp_update_compra(?, ?, ?, ?, ?, ?, ?)",
+		id,
+		input.IDEmpleado,
+		input.IDCliente,
+		input.FechaCompra,
+		input.TotalCompra,
+		input.IDProducto,
+		1,
+	).Error
 	if err != nil {
-		return nil, err
+		return nil, storedProcedureNotFound(err)
 	}
-	return compra, nil
+	return compraByID(ctx, r.db, id)
 }
 
 func (r *Repository) DestroyCompra(ctx context.Context, id int) error {
@@ -141,6 +101,12 @@ func (r *Repository) DestroyCompra(ctx context.Context, id int) error {
 		}
 		return nil
 	})
+}
+
+func (r *Repository) nextCompraID(ctx context.Context) (int, error) {
+	var id int
+	err := r.db.WithContext(ctx).Raw("SELECT nextval('compra_id_compra_seq')").Scan(&id).Error
+	return id, err
 }
 
 func compraByID(ctx context.Context, db *gorm.DB, id int) (*models.Compra, error) {

@@ -15,7 +15,9 @@ services:
       - postgres-data:/var/lib/postgresql/data
       - ./sql/ddl.sql:/docker-entrypoint-initdb.d/01-ddl.sql:ro
       - ./sql/pruebas.sql:/docker-entrypoint-initdb.d/02-pruebas.sql:ro
-      - ./backend/db/roles.sql:/docker-entrypoint-initdb.d/03-roles.sql:ro
+      - ./backend/procedures/productos.sql:/docker-entrypoint-initdb.d/03-productos.sql:ro
+      - ./backend/procedures/compras.sql:/docker-entrypoint-initdb.d/04-compras.sql:ro
+      - ./backend/db/roles.sql:/docker-entrypoint-initdb.d/05-roles.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 5s

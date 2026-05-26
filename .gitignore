@@ -1,0 +1,4 @@
+*.docx
+.env
+postgres-data/
+node_modules/

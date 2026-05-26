@@ -1,7 +1,5 @@
 /*
-    Archivo para poblar la base de datos inicialmente
-    El sistema va a funcionar como un vendedor de partes de computadoras:
-    CPUs, GPUs, RAM, SSDs, HDDs y demás, todo lo necesario para construír una desktop
+    Datos iniciales para la tienda de computadoras.
 
     Autor: Santiago Cordero
     Carnet: 24472

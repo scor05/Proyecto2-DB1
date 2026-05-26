@@ -39,20 +39,26 @@ func (r *Repository) CreateProduct(ctx context.Context, input models.ProductWrit
 		return nil, err
 	}
 
-	product := models.Product{
-		IDCategoria: input.IDCategoria,
-		IDProveedor: input.IDProveedor,
-		Precio:      input.Precio,
-		Stock:       input.Stock,
-		Nombre:      strings.TrimSpace(input.Nombre),
-		Imagen:      input.Imagen,
-		Descripcion: strings.TrimSpace(input.Descripcion),
-	}
-
-	if err := r.db.WithContext(ctx).Create(&product).Error; err != nil {
+	id, err := r.nextProductID(ctx)
+	if err != nil {
 		return nil, err
 	}
-	return r.ShowProduct(ctx, product.IDProducto)
+
+	err = r.db.WithContext(ctx).Exec(
+		"CALL sp_create_producto(?, ?, ?, ?, ?, ?, ?, ?)",
+		id,
+		input.IDCategoria,
+		input.IDProveedor,
+		input.Precio,
+		input.Stock,
+		strings.TrimSpace(input.Nombre),
+		input.Imagen,
+		strings.TrimSpace(input.Descripcion),
+	).Error
+	if err != nil {
+		return nil, err
+	}
+	return r.ShowProduct(ctx, id)
 }
 
 func (r *Repository) UpdateProduct(ctx context.Context, id int, input models.ProductWrite) (*models.Product, error) {
@@ -60,22 +66,19 @@ func (r *Repository) UpdateProduct(ctx context.Context, id int, input models.Pro
 		return nil, err
 	}
 
-	updates := map[string]any{
-		"id_categoria": input.IDCategoria,
-		"id_proveedor": input.IDProveedor,
-		"precio":       input.Precio,
-		"stock":        input.Stock,
-		"nombre":       strings.TrimSpace(input.Nombre),
-		"imagen":       input.Imagen,
-		"descripcion":  strings.TrimSpace(input.Descripcion),
-	}
-
-	result := r.db.WithContext(ctx).Model(&models.Product{}).Where("id_producto = ?", id).Updates(updates)
-	if result.Error != nil {
-		return nil, result.Error
-	}
-	if result.RowsAffected == 0 {
-		return nil, ErrNotFound
+	err := r.db.WithContext(ctx).Exec(
+		"CALL sp_update_producto(?, ?, ?, ?, ?, ?, ?, ?)",
+		id,
+		input.IDCategoria,
+		input.IDProveedor,
+		input.Precio,
+		input.Stock,
+		strings.TrimSpace(input.Nombre),
+		input.Imagen,
+		strings.TrimSpace(input.Descripcion),
+	).Error
+	if err != nil {
+		return nil, storedProcedureNotFound(err)
 	}
 	return r.ShowProduct(ctx, id)
 }
@@ -119,20 +122,8 @@ func (r *Repository) PatchProduct(ctx context.Context, id int, input models.Prod
 }
 
 func (r *Repository) DestroyProduct(ctx context.Context, id int) error {
-	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := tx.Delete(&models.ProductCompra{}, "id_producto = ?", id).Error; err != nil {
-			return err
-		}
-
-		result := tx.Delete(&models.Product{}, "id_producto = ?", id)
-		if result.Error != nil {
-			return result.Error
-		}
-		if result.RowsAffected == 0 {
-			return ErrNotFound
-		}
-		return nil
-	})
+	err := r.db.WithContext(ctx).Exec("CALL sp_delete_producto(?)", id).Error
+	return storedProcedureNotFound(err)
 }
 
 func (r *Repository) LoginEmployee(ctx context.Context, correo string) (*models.Employee, error) {
@@ -147,4 +138,10 @@ func (r *Repository) LoginEmployee(ctx context.Context, correo string) (*models.
 		return nil, err
 	}
 	return &employee, nil
+}
+
+func (r *Repository) nextProductID(ctx context.Context) (int, error) {
+	var id int
+	err := r.db.WithContext(ctx).Raw("SELECT nextval('producto_id_producto_seq')").Scan(&id).Error
+	return id, err
 }

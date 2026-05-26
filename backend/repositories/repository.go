@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"errors"
+	"strings"
 
 	"gorm.io/gorm"
 )
@@ -22,6 +23,17 @@ func New(db *gorm.DB) *Repository {
 
 func notFound(err error) error {
 	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return ErrNotFound
+	}
+	return err
+}
+
+func storedProcedureNotFound(err error) error {
+	if err == nil {
+		return nil
+	}
+	message := err.Error()
+	if strings.Contains(message, "producto_not_found") || strings.Contains(message, "compra_not_found") {
 		return ErrNotFound
 	}
 	return err
