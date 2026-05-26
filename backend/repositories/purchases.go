@@ -60,7 +60,7 @@ func (r *Repository) CreateCompra(ctx context.Context, input models.CompraWrite)
 		1,
 	).Error
 	if err != nil {
-		return nil, err
+		return nil, storedProcedureError(err)
 	}
 	return compraByID(ctx, r.db, id)
 }

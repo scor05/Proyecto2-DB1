@@ -14,6 +14,19 @@ CREATE OR REPLACE PROCEDURE sp_create_compra(
 LANGUAGE plpgsql
 AS $$
 BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM empleado
+        WHERE id_empleado = p_id_empleado
+    ) OR NOT EXISTS (
+        SELECT 1
+        FROM cliente
+        WHERE id_cliente = p_id_cliente
+    ) THEN
+        ROLLBACK;
+        RAISE EXCEPTION 'compra_referencia_invalida';
+    END IF;
+
     INSERT INTO compra (
         id_compra,
         id_empleado,
@@ -30,6 +43,15 @@ BEGIN
         p_total_compra
     );
 
+    IF NOT EXISTS (
+        SELECT 1
+        FROM producto
+        WHERE id_producto = p_id_producto
+    ) THEN
+        ROLLBACK;
+        RAISE EXCEPTION 'compra_producto_invalido';
+    END IF;
+
     INSERT INTO producto_compra (
         id_compra,
         id_producto,
@@ -40,6 +62,8 @@ BEGIN
         p_id_producto,
         p_cantidad_producto
     );
+
+    COMMIT;
 END;
 $$;
 

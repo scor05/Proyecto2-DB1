@@ -39,8 +39,10 @@ func storedProcedureError(err error) error {
 	}
 	if strings.Contains(message, "producto_referencia_invalida") ||
 		strings.Contains(message, "producto_datos_invalidos") ||
-		strings.Contains(message, "producto_duplicado") {
-		return fmt.Errorf("%w: stored procedure rejected product data", ErrInvalidInput)
+		strings.Contains(message, "producto_duplicado") ||
+		strings.Contains(message, "compra_referencia_invalida") ||
+		strings.Contains(message, "compra_producto_invalido") {
+		return fmt.Errorf("%w: stored procedure rejected data", ErrInvalidInput)
 	}
 	return err
 }
