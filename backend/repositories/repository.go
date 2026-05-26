@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 
 	"gorm.io/gorm"
@@ -28,13 +29,18 @@ func notFound(err error) error {
 	return err
 }
 
-func storedProcedureNotFound(err error) error {
+func storedProcedureError(err error) error {
 	if err == nil {
 		return nil
 	}
 	message := err.Error()
 	if strings.Contains(message, "producto_not_found") || strings.Contains(message, "compra_not_found") {
 		return ErrNotFound
+	}
+	if strings.Contains(message, "producto_referencia_invalida") ||
+		strings.Contains(message, "producto_datos_invalidos") ||
+		strings.Contains(message, "producto_duplicado") {
+		return fmt.Errorf("%w: stored procedure rejected product data", ErrInvalidInput)
 	}
 	return err
 }

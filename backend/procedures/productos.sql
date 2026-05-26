@@ -2,8 +2,10 @@
     Procedimientos para productos.
 */
 
+DROP PROCEDURE IF EXISTS sp_create_producto(INTEGER, INTEGER, INTEGER, NUMERIC, INTEGER, TEXT, TEXT, TEXT);
+
 CREATE OR REPLACE PROCEDURE sp_create_producto(
-    IN p_id_producto INTEGER,
+    INOUT p_id_producto INTEGER,
     IN p_id_categoria INTEGER,
     IN p_id_proveedor INTEGER,
     IN p_precio NUMERIC,
@@ -15,6 +17,10 @@ CREATE OR REPLACE PROCEDURE sp_create_producto(
 LANGUAGE plpgsql
 AS $$
 BEGIN
+    IF p_id_producto IS NULL THEN
+        p_id_producto := nextval('producto_id_producto_seq')::INTEGER;
+    END IF;
+
     INSERT INTO producto (
         id_producto,
         id_categoria,
@@ -36,6 +42,13 @@ BEGIN
         p_imagen,
         p_descripcion
     );
+EXCEPTION
+    WHEN foreign_key_violation THEN
+        RAISE EXCEPTION 'producto_referencia_invalida';
+    WHEN check_violation THEN
+        RAISE EXCEPTION 'producto_datos_invalidos';
+    WHEN unique_violation THEN
+        RAISE EXCEPTION 'producto_duplicado';
 END;
 $$;
 

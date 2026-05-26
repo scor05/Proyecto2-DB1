@@ -39,14 +39,11 @@ func (r *Repository) CreateProduct(ctx context.Context, input models.ProductWrit
 		return nil, err
 	}
 
-	id, err := r.nextProductID(ctx)
-	if err != nil {
-		return nil, err
+	var result struct {
+		IDProducto int `gorm:"column:p_id_producto"`
 	}
-
-	err = r.db.WithContext(ctx).Exec(
-		"CALL sp_create_producto(?, ?, ?, ?, ?, ?, ?, ?)",
-		id,
+	err := r.db.WithContext(ctx).Raw(
+		"CALL sp_create_producto(NULL, ?, ?, ?, ?, ?, ?, ?)",
 		input.IDCategoria,
 		input.IDProveedor,
 		input.Precio,
@@ -54,11 +51,11 @@ func (r *Repository) CreateProduct(ctx context.Context, input models.ProductWrit
 		strings.TrimSpace(input.Nombre),
 		input.Imagen,
 		strings.TrimSpace(input.Descripcion),
-	).Error
+	).Scan(&result).Error
 	if err != nil {
-		return nil, err
+		return nil, storedProcedureError(err)
 	}
-	return r.ShowProduct(ctx, id)
+	return r.ShowProduct(ctx, result.IDProducto)
 }
 
 func (r *Repository) UpdateProduct(ctx context.Context, id int, input models.ProductWrite) (*models.Product, error) {
@@ -78,7 +75,7 @@ func (r *Repository) UpdateProduct(ctx context.Context, id int, input models.Pro
 		strings.TrimSpace(input.Descripcion),
 	).Error
 	if err != nil {
-		return nil, storedProcedureNotFound(err)
+		return nil, storedProcedureError(err)
 	}
 	return r.ShowProduct(ctx, id)
 }
@@ -123,7 +120,7 @@ func (r *Repository) PatchProduct(ctx context.Context, id int, input models.Prod
 
 func (r *Repository) DestroyProduct(ctx context.Context, id int) error {
 	err := r.db.WithContext(ctx).Exec("CALL sp_delete_producto(?)", id).Error
-	return storedProcedureNotFound(err)
+	return storedProcedureError(err)
 }
 
 func (r *Repository) LoginEmployee(ctx context.Context, correo string) (*models.Employee, error) {
@@ -138,10 +135,4 @@ func (r *Repository) LoginEmployee(ctx context.Context, correo string) (*models.
 		return nil, err
 	}
 	return &employee, nil
-}
-
-func (r *Repository) nextProductID(ctx context.Context) (int, error) {
-	var id int
-	err := r.db.WithContext(ctx).Raw("SELECT nextval('producto_id_producto_seq')").Scan(&id).Error
-	return id, err
 }

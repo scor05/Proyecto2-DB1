@@ -81,7 +81,7 @@ func (r *Repository) UpdateCompra(ctx context.Context, id int, input models.Comp
 		1,
 	).Error
 	if err != nil {
-		return nil, storedProcedureNotFound(err)
+		return nil, storedProcedureError(err)
 	}
 	return compraByID(ctx, r.db, id)
 }
